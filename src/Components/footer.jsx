@@ -2,7 +2,6 @@ function Footer() {
   return (
     <footer className="bg-[#f8f8f8] text-gray-700 pt-10 pb-6 px-6 md:px-20">
       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10">
-        {/* Brand / About */}
         <div>
           <h3 className="text-xl font-bold mb-2 text-gray-800">
             Snooze Eatery
@@ -13,7 +12,6 @@ function Footer() {
           </p>
         </div>
 
-        {/* Quick Links */}
         <div>
           <h4 className="text-md font-semibold mb-2">Quick Links</h4>
           <ul className="space-y-1 text-sm">
@@ -40,7 +38,6 @@ function Footer() {
           </ul>
         </div>
 
-        {/* Contact Info */}
         <div>
           <h4 className="text-md font-semibold mb-2">Contact Us</h4>
           <ul className="text-sm space-y-1">
@@ -50,7 +47,6 @@ function Footer() {
           </ul>
         </div>
 
-        {/* Social Media */}
         <div>
           <h4 className="text-md font-semibold mb-2">Follow Us</h4>
           <div className="flex gap-4 text-xl text-gray-600">
@@ -70,7 +66,6 @@ function Footer() {
         </div>
       </div>
 
-      {/* Bottom Bar */}
       <div className="text-center text-sm mt-10 border-t border-gray-200 pt-4 text-gray-500">
         © {new Date().getFullYear()} Snooze Eatery. All rights reserved.
       </div>
