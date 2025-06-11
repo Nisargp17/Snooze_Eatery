@@ -1,0 +1,35 @@
+.NavBar_header {
+  width: 99.2vw;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  color: aliceblue;
+}
+
+.nav_titles {
+  font-size: 1.1rem;
+  font-weight: 400;
+}
+.hidden_header_list2:hover {
+  cursor: pointer;
+  .item2_list {
+    transition: all 0.5s linear;
+    opacity: 1;
+    transform: translateY(0vh);
+  }
+}
+.hidden_header_list3:hover {
+  cursor: pointer;
+  .item3_list {
+    transition: all 0.5s linear;
+    opacity: 1;
+    transform: translateY(0vh);
+  }
+}
+.header_item:hover {
+  cursor: pointer;
+}
+.nav_vertical_line {
+  height: 10.5vh;
+  width: 1px;
+  background-color: #918c89;
+}

@@ -1,0 +1,41 @@
+@import "tailwindcss";
+.btn-view {
+  border: 3px solid rgb(255, 228, 196);
+  border-radius: 10px;
+  padding: 20px 35px;
+  margin: 20px 0px;
+}
+.box-featuresList {
+  height: 45%;
+  width: 48%;
+  background-color: black;
+  margin: 10px 10px;
+}
+.home_button {
+  position: relative;
+  z-index: 1;
+  color: black;
+  overflow: hidden;
+}
+
+.home_button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  background-color: #2e2e2e;
+  transition: width 0.5s ease;
+  z-index: -1;
+  border-radius: 8px;
+}
+
+.home_button:hover::before {
+  width: 100%;
+}
+
+.home_button:hover {
+  color: white;
+  cursor: pointer;
+}
