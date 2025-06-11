@@ -1,8 +1,14 @@
+import { useEffect, useRef } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
 import img1 from "/src/assets/hero-slider-2.jpg";
 import img2 from "/src/assets/Menu-img-6.jpg";
 import img3 from "/src/assets/Menu-img-7.jpg";
 import img4 from "/src/assets/Menu-img-8.jpg";
 import img5 from "/src/assets/Menu-img-9.jpg";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const appetizers = [
   {
@@ -116,35 +122,82 @@ const cocktails = [
   },
 ];
 
-const Section = ({ title, image, items, reverse }) => (
-  <section
-    className={`flex justify-center items-center flex-wrap gap-[5vh] ${
-      reverse ? "flex-row-reverse" : ""
-    } my-[6vh]`}
-  >
-    <div className="h-[70vh] w-[40vw] rounded-t-[100%] overflow-hidden">
-      <img
-        className="h-full w-full object-cover rounded-t-[100%]"
-        src={image}
-        alt={title}
-      />
-    </div>
-    <div className="flex flex-col gap-[5vh] px-8">
-      <div className="text-[#2e2e2e] text-[3vw] uppercase">{title}</div>
-      <div>
-        {items.map((item, index) => (
-          <div key={index} className="w-[20vw] mb-4">
-            <div className="p-4">
-              <h3 className="text-xl font-semibold">{item.name}</h3>
-              <p className="text-gray-600 text-sm mt-1">{item.description}</p>
-              <p className="text-gray-800 font-bold mt-2">{item.price}</p>
-            </div>
-          </div>
-        ))}
+const Section = ({ title, image, items, reverse }) => {
+  const sectionRef = useRef(null);
+  const hasAnimated = useRef(false);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+
+    const trigger = ScrollTrigger.create({
+      trigger: section,
+      start: "top 70%",
+      onEnter: () => {
+        if (hasAnimated.current) return;
+
+        gsap.fromTo(
+          section,
+          { autoAlpha: 0, y: 100 },
+          {
+            autoAlpha: 1,
+            y: 0,
+            duration: 1,
+            ease: "power3.out",
+          }
+        );
+
+        gsap.fromTo(
+          section.querySelectorAll(".menu-item"),
+          { autoAlpha: 0, y: 30 },
+          {
+            autoAlpha: 1,
+            y: 0,
+            duration: 0.6,
+            ease: "power2.out",
+            stagger: 0.15,
+            delay: 0.2,
+          }
+        );
+
+        hasAnimated.current = true;
+      },
+    });
+
+    return () => trigger.kill();
+  }, []);
+
+  return (
+    <section
+      ref={sectionRef}
+      className={`opacity-0 flex justify-center items-center flex-wrap gap-[5vh] ${
+        reverse ? "flex-row-reverse" : ""
+      } my-[6vh] transition-opacity duration-1000`}
+    >
+      <div className="h-[70vh] w-[30vw] rounded-t-[100%] overflow-hidden">
+        <img
+          loading="lazy"
+          className="h-full w-full object-cover rounded-t-[100%]"
+          src={image}
+          alt={title}
+        />
       </div>
-    </div>
-  </section>
-);
+      <div className="flex flex-col gap-[5vh] px-8">
+        <div className="text-[#2e2e2e] text-[3vw] uppercase">{title}</div>
+        <div>
+          {items.map((item, index) => (
+            <div key={index} className="w-[20vw] mb-4 menu-item opacity-0">
+              <div className="p-4">
+                <h3 className="text-xl font-semibold">{item.name}</h3>
+                <p className="text-gray-600 text-sm mt-1">{item.description}</p>
+                <p className="text-gray-800 font-bold mt-2">{item.price}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
 
 function Menu() {
   return (
