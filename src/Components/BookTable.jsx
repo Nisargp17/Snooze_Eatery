@@ -1,32 +1,44 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Img1 from "/src/assets/booktable.jpg";
 
 gsap.registerPlugin(ScrollTrigger);
 
+function useOnClickOutside(ref, handler) {
+  useEffect(() => {
+    const listener = (event) => {
+      if (!ref.current || ref.current.contains(event.target)) return;
+      handler(event);
+    };
+    document.addEventListener("mousedown", listener);
+    return () => document.removeEventListener("mousedown", listener);
+  }, [ref, handler]);
+}
+
 const BookTable = () => {
   const formRef = useRef(null);
   const popupRef = useRef(null);
+  const modalRef = useRef(null);
+  const dropdownRef = useRef(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [popupMessage, setPopupMessage] = useState("");
 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     date: "",
-    time: "11:00",
+    time: "11:00 AM",
     guests: 1,
     requests: "",
   });
 
-  const [popupMessage, setPopupMessage] = useState("");
-  const [isPopupVisible, setIsPopupVisible] = useState(false);
-
-  // Animate the main form on scroll into view
+  // Animate form entrance
   useEffect(() => {
     if (!formRef.current) return;
     gsap.fromTo(
@@ -45,7 +57,7 @@ const BookTable = () => {
     );
   }, []);
 
-  // Show popup animation when it becomes visible
+  // Animate popup visibility
   useEffect(() => {
     if (isPopupVisible && popupRef.current) {
       gsap.fromTo(
@@ -73,45 +85,124 @@ const BookTable = () => {
     }
   }, [isPopupVisible]);
 
-  const generateTimes = () => {
+  // Generate times dropdown (memoized)
+  const generateTimes = useMemo(() => {
     const times = [];
     let hour = 10;
     const minutes = ["00", "30"];
     for (let i = 0; i < 13; i++) {
       minutes.forEach((minute) => {
-        const time = `${(hour % 12) + 1}:${minute}`;
-        times.push(`${time} ${hour < 11 ? "AM" : "PM"}`);
+        const hr12 = hour % 12 === 0 ? 12 : hour % 12;
+        const ampm = hour < 12 ? "AM" : "PM";
+        times.push(`${hr12}:${minute} ${ampm}`);
       });
-      hour = hour === 11 ? 12 : hour + 1;
+      hour = hour === 23 ? 0 : hour + 1;
     }
     return times;
-  };
+  }, []);
 
-  const handleDropdownToggle = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
+  // Close dropdown on outside click
+  useOnClickOutside(dropdownRef, () => setIsDropdownOpen(false));
 
-  const handleChange = (e) => {
+  // Close modal on outside click
+  useOnClickOutside(modalRef, (e) => {
+    if (e.target === modalRef.current) {
+      setIsModalOpen(false);
+    }
+  });
+
+  // Close modal & dropdown on ESC
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setIsModalOpen(false);
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  // Trap focus inside modal when open
+  useEffect(() => {
+    if (!isModalOpen) return;
+
+    const focusableElements = modalRef.current.querySelectorAll(
+      'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+    );
+    if (!focusableElements.length) return;
+
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    const handleTab = (e) => {
+      if (e.key !== "Tab") return;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          e.preventDefault();
+          lastElement.focus();
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          e.preventDefault();
+          firstElement.focus();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleTab);
+    firstElement.focus();
+
+    return () => document.removeEventListener("keydown", handleTab);
+  }, [isModalOpen]);
+
+  // Validation helpers
+  const validateEmail = (email) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+
+  const validatePhone = (phone) => /^\+?[\d\s\-()]{7,15}$/.test(phone.trim());
+
+  // Handle form data change
+  const handleChange = useCallback((e) => {
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: value,
     }));
-  };
+  }, []);
 
-  const showPopup = (message) => {
+  // Popup helper
+  const showPopup = useCallback((message) => {
     setPopupMessage(message);
     setIsPopupVisible(true);
-  };
+  }, []);
 
+  // Submit handler with validation
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Basic inline validation
+    if (!formData.name.trim()) return showPopup("Please enter your name.");
+    if (!validateEmail(formData.email))
+      return showPopup("Please enter a valid email.");
+    if (!validatePhone(formData.phone))
+      return showPopup("Please enter a valid phone number.");
+    if (!formData.date) return showPopup("Please select a date.");
+    if (!formData.time) return showPopup("Please select a time.");
+
     setIsLoading(true);
+
+    const payload = {
+      ...formData,
+      type: "table",
+    };
 
     try {
       const response = await fetch("http://localhost:5000/api/reservations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       const result = await response.json();
@@ -123,169 +214,243 @@ const BookTable = () => {
           email: "",
           phone: "",
           date: "",
-          time: "11:00",
+          time: "11:00 AM",
           guests: 1,
           requests: "",
         });
         setIsModalOpen(false);
       } else {
-        showPopup(" Booking failed: " + result.message);
+        showPopup("Booking failed: " + result.message);
       }
     } catch (error) {
       console.error("Frontend error:", error);
-      showPopup(" Something went wrong. Please try again.");
+      showPopup("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Disable booking button if date or time missing
+  const isBookDisabled = !formData.date || !formData.time;
+
   return (
     <div
       ref={formRef}
-      className="h-[80vh] flex flex-col items-center justify-center px-4 py-12 bg-gray-100"
+      className="min-h-[80vh] flex flex-col items-center justify-center px-4 py-12 bg-gray-100"
     >
-      <div className="h-[77vh] flex flex-col md:flex-row w-full max-w-6xl bg-white shadow-lg rounded-lg overflow-hidden">
-        <div className="md:w-1/2 h-80 md:h-auto">
+      <div className="max-w-6xl w-full flex flex-col md:flex-row bg-white rounded-lg shadow-lg overflow-hidden">
+        {/* Left image */}
+        <div className="md:w-1/2 h-72 md:h-auto">
           <img
             src={Img1}
-            alt="Restaurant"
+            alt="Restaurant interior"
             className="w-full h-full object-cover"
+            loading="lazy"
           />
         </div>
 
-        <div className="h-[77vh] md:w-1/2 p-8 space-y-15 flex flex-col justify-center">
-          <h2 className="text-[2vw] font-bold text-gray-800 text-center md:text-left">
+        {/* Right form area */}
+        <div className="md:w-1/2 p-8 flex flex-col justify-center items-center space-y-10">
+          <h2 className="text-3xl font-bold text-gray-800 text-center md:text-left">
             Reserve Your Table
           </h2>
 
-          <div className="flex flex-col w-[20vw] gap-8">
+          <div className="w-full max-w-xs flex flex-col gap-6">
+            <label htmlFor="date" className="sr-only">
+              Select date
+            </label>
             <input
               type="date"
+              id="date"
               name="date"
               value={formData.date}
               onChange={handleChange}
               required
-              className="border p-3 rounded-md w-full"
+              className="border rounded-md p-3 w-full focus:outline-none focus:ring-2 focus:ring-black"
+              aria-describedby="dateHelp"
             />
 
-            <div className="relative">
+            <label htmlFor="time" className="sr-only">
+              Select time
+            </label>
+            <div className="relative" ref={dropdownRef}>
               <input
-                type="text"
+                id="time"
                 name="time"
-                value={formData.time}
-                onClick={handleDropdownToggle}
+                type="text"
                 readOnly
-                required
-                className="border p-3 rounded-md w-full cursor-pointer"
+                value={formData.time}
+                onClick={() => setIsDropdownOpen((prev) => !prev)}
+                aria-haspopup="listbox"
+                aria-expanded={isDropdownOpen}
+                className="border rounded-md p-3 w-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-black"
+                aria-describedby="timeHelp"
               />
-
               {isDropdownOpen && (
-                <div className="absolute left-0 w-full bg-white border shadow-md mt-2 max-h-[20vh] overflow-y-auto z-10">
-                  <ul>
-                    {generateTimes().map((time, index) => (
-                      <li
-                        key={index}
-                        className="p-3 cursor-pointer hover:bg-gray-200"
-                        onClick={() => {
+                <ul
+                  role="listbox"
+                  tabIndex={-1}
+                  className="absolute left-0 right-0 bg-white border rounded-md shadow-lg max-h-48 overflow-auto z-20 mt-1"
+                >
+                  {generateTimes.map((timeOption, idx) => (
+                    <li
+                      key={idx}
+                      role="option"
+                      tabIndex={0}
+                      aria-selected={formData.time === timeOption}
+                      onClick={() => {
+                        setFormData((prev) => ({ ...prev, time: timeOption }));
+                        setIsDropdownOpen(false);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
                           setFormData((prev) => ({
                             ...prev,
-                            time: time,
+                            time: timeOption,
                           }));
                           setIsDropdownOpen(false);
-                        }}
-                      >
-                        {time}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                        }
+                      }}
+                      className={`p-3 cursor-pointer hover:bg-gray-200 ${
+                        formData.time === timeOption
+                          ? "bg-gray-300 font-semibold"
+                          : ""
+                      }`}
+                    >
+                      {timeOption}
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
 
+            <label htmlFor="guests" className="sr-only">
+              Number of guests
+            </label>
             <input
-              type="number"
+              id="guests"
               name="guests"
+              type="number"
               min={1}
               max={20}
               value={formData.guests}
               onChange={handleChange}
               required
-              className="border p-3 rounded-md w-full"
+              className="border rounded-md p-3 w-full focus:outline-none focus:ring-2 focus:ring-black"
             />
           </div>
 
           <button
+            type="button"
             onClick={() => {
-              if (!formData.date || !formData.time) {
+              if (isBookDisabled) {
                 showPopup("Please fill in Date and Time to proceed.");
-              } else {
-                setIsModalOpen(true);
+                return;
               }
+              setIsModalOpen(true);
             }}
-            className="bg-black text-white px-6 py-3 w-[20vw] rounded-md hover:bg-gray-800 transition"
+            disabled={isBookDisabled}
+            className={`bg-black text-white px-6 py-3 rounded-md w-full max-w-xs transition ${
+              isBookDisabled
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-gray-800"
+            }`}
           >
             Book Table
           </button>
         </div>
       </div>
 
+      {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 px-4">
-          <div className="bg-white p-8 rounded-lg w-full max-w-2xl relative">
+        <div
+          ref={modalRef}
+          tabIndex={-1}
+          className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 px-4"
+          aria-modal="true"
+          role="dialog"
+          aria-labelledby="modal-title"
+          aria-describedby="modal-desc"
+        >
+          <div className="bg-white rounded-lg p-8 max-w-2xl w-full relative shadow-lg">
             <button
+              aria-label="Close modal"
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-2 right-4 text-gray-500 hover:text-gray-800 text-2xl"
+              className="absolute top-3 right-4 text-gray-500 hover:text-gray-800 text-3xl leading-none"
             >
               &times;
             </button>
 
-            <h3 className="text-xl font-semibold mb-6 text-center">
+            <h3
+              id="modal-title"
+              className="text-2xl font-semibold mb-6 text-center"
+            >
               Complete Your Booking
             </h3>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} aria-describedby="modal-desc">
               <div className="space-y-6">
+                <label htmlFor="name" className="block font-medium">
+                  Full Name <span className="text-red-500">*</span>
+                </label>
                 <input
-                  type="text"
+                  id="name"
                   name="name"
+                  type="text"
                   placeholder="Full Name"
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className="border p-3 rounded-md w-full"
+                  className="border rounded-md p-3 w-full focus:outline-none focus:ring-2 focus:ring-black"
                 />
+
+                <label htmlFor="email" className="block font-medium">
+                  Email <span className="text-red-500">*</span>
+                </label>
                 <input
-                  type="email"
+                  id="email"
                   name="email"
+                  type="email"
                   placeholder="Email"
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="border p-3 rounded-md w-full"
+                  className="border rounded-md p-3 w-full focus:outline-none focus:ring-2 focus:ring-black"
                 />
+
+                <label htmlFor="phone" className="block font-medium">
+                  Phone Number <span className="text-red-500">*</span>
+                </label>
                 <input
-                  type="tel"
+                  id="phone"
                   name="phone"
+                  type="tel"
                   placeholder="Phone Number"
                   value={formData.phone}
                   onChange={handleChange}
                   required
-                  className="border p-3 rounded-md w-full"
+                  className="border rounded-md p-3 w-full focus:outline-none focus:ring-2 focus:ring-black"
                 />
+
+                <label htmlFor="requests" className="block font-medium">
+                  Special Requests
+                </label>
                 <textarea
+                  id="requests"
                   name="requests"
                   rows="3"
                   placeholder="Special Requests"
                   value={formData.requests}
                   onChange={handleChange}
-                  className="border p-3 rounded-md w-full"
+                  className="border rounded-md p-3 w-full focus:outline-none focus:ring-2 focus:ring-black"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className={`bg-black text-white px-6 py-3 rounded-md hover:bg-gray-800 transition w-full flex justify-center items-center ${
+                className={`bg-black text-white px-6 py-3 rounded-md hover:bg-gray-800 transition w-full flex justify-center items-center mt-6 ${
                   isLoading ? "cursor-not-allowed opacity-70" : ""
                 }`}
               >
@@ -307,11 +472,11 @@ const BookTable = () => {
                     <path
                       className="opacity-75"
                       fill="currentColor"
-                      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                      d="M4 12a8 8 0 018-8v8z"
                     ></path>
                   </svg>
                 ) : (
-                  "Confirm Booking"
+                  "Confirm Reservation"
                 )}
               </button>
             </form>
@@ -319,10 +484,13 @@ const BookTable = () => {
         </div>
       )}
 
+      {/* Popup */}
       {isPopupVisible && (
         <div
           ref={popupRef}
-          className="fixed top-6 left-1/2 transform -translate-x-1/2 bg-white text-black shadow-lg border px-6 py-3 rounded-md z-50"
+          className="fixed bottom-5 right-5 bg-green-600 text-white px-6 py-3 rounded-md shadow-lg z-50 select-none"
+          role="alert"
+          aria-live="assertive"
         >
           {popupMessage}
         </div>

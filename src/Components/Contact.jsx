@@ -10,6 +10,7 @@ const Contact = () => {
 
   useEffect(() => {
     const el = sectionRef.current;
+
     gsap.fromTo(
       el,
       { autoAlpha: 0, y: 50 },
@@ -20,6 +21,22 @@ const Contact = () => {
         ease: "power2.out",
         scrollTrigger: {
           trigger: el,
+          start: "top 80%",
+        },
+      }
+    );
+
+    gsap.fromTo(
+      ".contact-form input, .contact-form textarea, .contact-form button",
+      { autoAlpha: 0, y: 30 },
+      {
+        autoAlpha: 1,
+        y: 0,
+        duration: 1,
+        stagger: 0.2,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: ".contact-form",
           start: "top 80%",
         },
       }
@@ -39,7 +56,6 @@ const Contact = () => {
   return (
     <div ref={sectionRef} className="min-h-screen px-6 py-12 bg-[#fdfdfd]">
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
-        {/* Contact Info */}
         <div>
           <h2 className="text-4xl font-semibold mb-6 text-[#2e2e2e]">
             Contact Snooze Eatery
@@ -74,11 +90,10 @@ const Contact = () => {
           </div>
         </div>
 
-        {/* Contact Form */}
         <div>
           <form
             onSubmit={handleSubmit}
-            className="bg-white shadow-lg rounded-xl p-8 space-y-6"
+            className="contact-form bg-white shadow-lg rounded-xl p-8 space-y-6"
           >
             <div>
               <label className="block text-gray-800 font-medium">
@@ -121,7 +136,7 @@ const Contact = () => {
             </div>
             <button
               type="submit"
-              className="w-full bg-[#2e2e2e] text-white p-3 rounded-md hover:bg-[#444]"
+              className="w-full bg-[#2e2e2e] text-white p-3 rounded-md hover:bg-[#444] transition-all duration-300"
             >
               Send Message
             </button>

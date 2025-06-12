@@ -1,5 +1,9 @@
 import gsap from "gsap";
 import "./HomePage.css";
+import { NavLink } from "react-router-dom";
+import Img1 from "/src/assets/hero-slider-1.jpg";
+import Img2 from "/src/assets/separator.svg";
+
 import { useEffect } from "react";
 function HomePage() {
   useEffect(() => {
@@ -76,7 +80,7 @@ function HomePage() {
             <img
               id="Hero-img"
               className="object-fill h-[100vh] opacity-0 "
-              src="./src/assets/hero-slider-1.jpg"
+              src={Img1}
               alt=""
             />
             <div
@@ -90,11 +94,7 @@ function HomePage() {
                 DELIGHTFUL EXPERIENCE
               </div>
               <div id="hero_text2" className="img opacity-0">
-                <img
-                  className="h-[2rem]"
-                  src="./src/assets/separator.svg"
-                  alt=""
-                />
+                <img className="h-[2rem]" src={Img2} alt="" />
               </div>
               <div className=" text-center text-white">
                 <div
@@ -115,7 +115,11 @@ function HomePage() {
                 food
               </div>
               <div id="hero_text6" className="opacity-0 btn-view">
-                <button className="text-[1.1rem] text-white">View Menu</button>
+                <NavLink to="/menu">
+                  <button className="text-[1.1rem] text-white">
+                    View Menu
+                  </button>
+                </NavLink>
               </div>
             </div>
           </div>

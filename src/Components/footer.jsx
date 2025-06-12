@@ -50,16 +50,32 @@ function Footer() {
         <div>
           <h4 className="text-md font-semibold mb-2">Follow Us</h4>
           <div className="flex gap-4 text-xl text-gray-600">
-            <a href="#" className="hover:text-[#ff5722]">
+            <a
+              href="#"
+              aria-label="Instagram"
+              className="hover:text-[#ff5722] transition-colors duration-300"
+            >
               <i className="fab fa-instagram"></i>
             </a>
-            <a href="#" className="hover:text-[#3b5998]">
+            <a
+              href="#"
+              aria-label="Facebook"
+              className="hover:text-[#3b5998] transition-colors duration-300"
+            >
               <i className="fab fa-facebook"></i>
             </a>
-            <a href="#" className="hover:text-[#1da1f2]">
+            <a
+              href="#"
+              aria-label="Twitter"
+              className="hover:text-[#1da1f2] transition-colors duration-300"
+            >
               <i className="fab fa-twitter"></i>
             </a>
-            <a href="#" className="hover:text-[#c4302b]">
+            <a
+              href="#"
+              aria-label="YouTube"
+              className="hover:text-[#c4302b] transition-colors duration-300"
+            >
               <i className="fab fa-youtube"></i>
             </a>
           </div>

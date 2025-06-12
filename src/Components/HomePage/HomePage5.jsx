@@ -40,13 +40,19 @@ function HomePage5() {
       {iconData.map((item) => (
         <div
           key={item.id}
-          className="flex flex-col justify-center items-center gap-2 w-[20vw] text-center hover:scale-105 hover:cursor-pointer transition-transform duration-300"
+          className="flex flex-col justify-center items-center gap-3 w-full sm:w-[45%] md:w-[20vw] text-center hover:scale-105 hover:cursor-pointer transition-transform duration-300"
         >
-          <img src={item.image} alt={item.title} className="w-16 h-16" />
-          <h3 className="text-lg font-[500] text-[1vw] text-[#2e2e2e]">
+          <img
+            src={item.image}
+            alt={item.title}
+            className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24"
+          />
+          <h3 className=" font-semibold text-[#2e2e2e] text-base sm:text-lg md:text-xl">
             {item.title}
           </h3>
-          <p className="text-[0.8vw] text-gray-600">{item.description}</p>
+          <p className="text-[0.8vw] sm:text-[1vw] text-gray-600">
+            {item.description}
+          </p>
         </div>
       ))}
     </section>

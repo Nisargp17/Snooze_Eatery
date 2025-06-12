@@ -1,4 +1,5 @@
 import Img1 from "/src/assets/home1-main-image-4.jpg";
+import { NavLink } from "react-router-dom";
 import "./HomePage.css";
 function HomePage3() {
   return (
@@ -18,9 +19,11 @@ function HomePage3() {
             we’re proud to serve.
           </div>
           <div className=" pt-[1vh]">
-            <button className="home_button py-[2vh] px-[3vw] bg-[white]">
-              VIEW MENU
-            </button>
+            <NavLink to="/menu">
+              <button className="home_button py-[2vh] px-[3vw] bg-[white]">
+                VIEW MENU
+              </button>
+            </NavLink>
           </div>
         </div>
         <div>
