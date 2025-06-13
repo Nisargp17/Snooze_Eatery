@@ -2,7 +2,7 @@
   "name": "restaurant-site",
   "private": true,
   "version": "0.0.0",
- "homepage": "https://nisargp17.github.io/Snooze_Eatery",
+ "homepage": "https://Nisargp17.github.io/Snooze_Eatery",
   "type": "module",
   "scripts": {
     "dev": "vite",
