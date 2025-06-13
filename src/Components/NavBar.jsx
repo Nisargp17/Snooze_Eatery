@@ -54,38 +54,38 @@ function NavBar() {
         <div className="text-white font-bold text-lg">Snooze Eatery</div>
       </div>
 
-      <nav className="nav_titles flex gap-10">
+      <nav className="nav_titles flex gap-10 h-[8vh]">
         <NavLink
           to="/"
-          className="header_item h-[9vh] flex items-center justify-center"
+          className="header_item flex items-center justify-center"
         >
           Home
         </NavLink>
 
         <NavLink
           to="/menu"
-          className="header_item h-[9vh] flex items-center justify-center"
+          className="header_item flex items-center justify-center"
         >
           Menu
         </NavLink>
 
         <NavLink
           to="/reservation"
-          className="header_item h-[9vh] flex items-center justify-center"
+          className="header_item flex items-center justify-center"
         >
           Reservation
         </NavLink>
 
         <NavLink
           to="/book-table"
-          className="header_item h-[9vh] flex items-center justify-center"
+          className="header_item flex items-center justify-center"
         >
           Book A Table
         </NavLink>
 
         <NavLink
           to="/contact"
-          className="header_item h-[9vh] flex items-center justify-center"
+          className="header_item flex items-center justify-center"
         >
           Contact
         </NavLink>

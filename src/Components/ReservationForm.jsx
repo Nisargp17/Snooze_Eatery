@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
+import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
 
 const InputField = ({
   id,
@@ -117,7 +118,7 @@ const ReservationForm = () => {
   });
 
   const [errors, setErrors] = useState({});
-  const [submitStatus, setSubmitStatus] = useState(null); // { type: 'success' | 'error', message: string }
+  const [submitStatus, setSubmitStatus] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -232,158 +233,163 @@ const ReservationForm = () => {
   };
 
   return (
-    <section
-      className="min-h-screen bg-white text-black flex items-center justify-center px-6 py-16"
-      aria-labelledby="reservation-heading"
-    >
-      <div
-        ref={containerRef}
-        className="w-full max-w-3xl mx-auto border border-gray-300 rounded-2xl p-10 shadow-sm bg-white overflow-hidden"
+    <>
+      <div className="flex flex-col justify-center items-center h-[50vh] bg-[url(/src/assets/reservationbg.jpg)]  bg-bottom">
+        <div className="text-[4.5rem] text-white font-[300]">BOOK A TABLE</div>
+      </div>
+      <section
+        className="min-h-screen bg-white text-black flex items-center justify-center px-6 py-16"
+        aria-labelledby="reservation-heading"
       >
-        <header className="mb-10 text-center">
-          <h1
-            id="reservation-heading"
-            className="text-3xl md:text-4xl font-medium tracking-tight"
-          >
-            Reserve a Private Event
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Exclusively tailored for your special moments
-          </p>
-        </header>
-
-        <form
-          onSubmit={handleSubmit}
-          className="grid grid-cols-1 md:grid-cols-2 gap-6"
-          noValidate
+        <div
+          ref={containerRef}
+          className="w-full max-w-3xl mx-auto border border-gray-300 rounded-2xl p-10 shadow-sm bg-white overflow-hidden"
         >
-          <InputField
-            id="name"
-            label="Your Name"
-            name="name"
-            value={formData.name}
-            required
-            minLength={2}
-            autoComplete="name"
-            onChange={handleChange}
-            error={errors.name}
-          />
+          <header className="mb-10 text-center">
+            <h1
+              id="reservation-heading"
+              className="text-3xl md:text-4xl font-medium tracking-tight"
+            >
+              Reserve a Private Event
+            </h1>
+            <p className="text-gray-600 mt-2">
+              Exclusively tailored for your special moments
+            </p>
+          </header>
 
-          <InputField
-            id="email"
-            label="Email"
-            type="email"
-            name="email"
-            value={formData.email}
-            required
-            autoComplete="email"
-            onChange={handleChange}
-            error={errors.email}
-          />
-
-          <InputField
-            id="event"
-            label="Event Name"
-            name="event"
-            value={formData.event}
-            required
-            placeholder="e.g. Birthday Dinner"
-            onChange={handleChange}
-            error={errors.event}
-          />
-
-          <InputField
-            id="persons"
-            label="Number of Guests"
-            name="persons"
-            type="number"
-            value={formData.persons}
-            required
-            min={1}
-            placeholder="e.g. 10"
-            onChange={handleChange}
-            error={errors.persons}
-          />
-
-          <InputField
-            id="date"
-            label="Event Date"
-            name="date"
-            type="date"
-            value={formData.date}
-            required
-            onChange={handleChange}
-            error={errors.date}
-          />
-
-          <InputField
-            id="time"
-            label="Start Time"
-            name="time"
-            type="time"
-            value={formData.time}
-            required
-            onChange={handleChange}
-            error={errors.time}
-          />
-
-          <InputField
-            id="duration"
-            label="Duration"
-            name="duration"
-            value={formData.duration}
-            required
-            placeholder="e.g. 3 hours"
-            onChange={handleChange}
-            error={errors.duration}
-          />
-
-          <div className="md:col-span-2">
-            <TextAreaField
-              id="message"
-              label="Additional Notes"
-              name="message"
-              value={formData.message}
+          <form
+            onSubmit={handleSubmit}
+            className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            noValidate
+          >
+            <InputField
+              id="name"
+              label="Your Name"
+              name="name"
+              value={formData.name}
               required
-              placeholder="Anything we should know?"
+              minLength={2}
+              autoComplete="name"
               onChange={handleChange}
-              error={errors.message}
+              error={errors.name}
             />
-          </div>
 
-          <div className="md:col-span-2">
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full py-3 rounded-md bg-black text-white transition
+            <InputField
+              id="email"
+              label="Email"
+              type="email"
+              name="email"
+              value={formData.email}
+              required
+              autoComplete="email"
+              onChange={handleChange}
+              error={errors.email}
+            />
+
+            <InputField
+              id="event"
+              label="Event Name"
+              name="event"
+              value={formData.event}
+              required
+              placeholder="e.g. Birthday Dinner"
+              onChange={handleChange}
+              error={errors.event}
+            />
+
+            <InputField
+              id="persons"
+              label="Number of Guests"
+              name="persons"
+              type="number"
+              value={formData.persons}
+              required
+              min={1}
+              placeholder="e.g. 10"
+              onChange={handleChange}
+              error={errors.persons}
+            />
+
+            <InputField
+              id="date"
+              label="Event Date"
+              name="date"
+              type="date"
+              value={formData.date}
+              required
+              onChange={handleChange}
+              error={errors.date}
+            />
+
+            <InputField
+              id="time"
+              label="Start Time"
+              name="time"
+              type="time"
+              value={formData.time}
+              required
+              onChange={handleChange}
+              error={errors.time}
+            />
+
+            <InputField
+              id="duration"
+              label="Duration"
+              name="duration"
+              value={formData.duration}
+              required
+              placeholder="e.g. 3 hours"
+              onChange={handleChange}
+              error={errors.duration}
+            />
+
+            <div className="md:col-span-2">
+              <TextAreaField
+                id="message"
+                label="Additional Notes"
+                name="message"
+                value={formData.message}
+                required
+                placeholder="Anything we should know?"
+                onChange={handleChange}
+                error={errors.message}
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className={`w-full py-3 rounded-md bg-black text-white transition
                 focus:outline-none focus:ring-2 focus:ring-black
                 ${
                   loading
                     ? "opacity-50 cursor-not-allowed"
                     : "hover:bg-neutral-900"
                 }`}
-              aria-busy={loading}
-            >
-              {loading ? "Submitting..." : "Confirm Reservation"}
-            </button>
-          </div>
-        </form>
+                aria-busy={loading}
+              >
+                {loading ? "Submitting..." : "Confirm Reservation"}
+              </button>
+            </div>
+          </form>
 
-        {submitStatus && (
-          <div
-            role="alert"
-            aria-live="assertive"
-            className={`mt-6 p-4 rounded-md font-medium ${
-              submitStatus.type === "success"
-                ? "bg-green-100 text-green-700"
-                : "bg-red-100 text-red-700"
-            }`}
-          >
-            {submitStatus.message}
-          </div>
-        )}
-      </div>
-    </section>
+          {submitStatus && (
+            <div
+              role="alert"
+              aria-live="assertive"
+              className={`mt-6 p-4 rounded-md font-medium ${
+                submitStatus.type === "success"
+                  ? "bg-green-100 text-green-700"
+                  : "bg-red-100 text-red-700"
+              }`}
+            >
+              {submitStatus.message}
+            </div>
+          )}
+        </div>
+      </section>
+    </>
   );
 };
 

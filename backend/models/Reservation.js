@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-
 const reservationSchema = new mongoose.Schema({
   type: {
     type: String,
@@ -8,13 +7,14 @@ const reservationSchema = new mongoose.Schema({
   },
   name: { type: String, required: true },
   email: { type: String, required: true },
-  phone: String, // optional
+  phone: String,
   date: { type: String, required: true },
   time: { type: String, required: true },
-  duration: String, // for events
+  duration: String,
   eventName: String,
-  persons: Number, // guests or attendees
+  persons: Number,
   requests: String,
+  status: { type: String, enum: ["waiting", "confirmed"], default: "waiting" },
   createdAt: { type: Date, default: Date.now },
 });
 

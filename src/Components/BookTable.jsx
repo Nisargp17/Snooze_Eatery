@@ -2,6 +2,7 @@ import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Img1 from "/src/assets/booktable.jpg";
+import PaymentForm from "./PaymentForm";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -27,6 +28,8 @@ const BookTable = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [reservationId, setReservationId] = useState(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -38,7 +41,6 @@ const BookTable = () => {
     requests: "",
   });
 
-  // Animate form entrance
   useEffect(() => {
     if (!formRef.current) return;
     gsap.fromTo(
@@ -57,7 +59,6 @@ const BookTable = () => {
     );
   }, []);
 
-  // Animate popup visibility
   useEffect(() => {
     if (isPopupVisible && popupRef.current) {
       gsap.fromTo(
@@ -85,7 +86,6 @@ const BookTable = () => {
     }
   }, [isPopupVisible]);
 
-  // Generate times dropdown (memoized)
   const generateTimes = useMemo(() => {
     const times = [];
     let hour = 10;
@@ -101,17 +101,14 @@ const BookTable = () => {
     return times;
   }, []);
 
-  // Close dropdown on outside click
   useOnClickOutside(dropdownRef, () => setIsDropdownOpen(false));
 
-  // Close modal on outside click
   useOnClickOutside(modalRef, (e) => {
     if (e.target === modalRef.current) {
       setIsModalOpen(false);
     }
   });
 
-  // Close modal & dropdown on ESC
   useEffect(() => {
     const onKeyDown = (e) => {
       if (e.key === "Escape") {
@@ -123,7 +120,6 @@ const BookTable = () => {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  // Trap focus inside modal when open
   useEffect(() => {
     if (!isModalOpen) return;
 
@@ -157,13 +153,11 @@ const BookTable = () => {
     return () => document.removeEventListener("keydown", handleTab);
   }, [isModalOpen]);
 
-  // Validation helpers
   const validateEmail = (email) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
   const validatePhone = (phone) => /^\+?[\d\s\-()]{7,15}$/.test(phone.trim());
 
-  // Handle form data change
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -172,17 +166,14 @@ const BookTable = () => {
     }));
   }, []);
 
-  // Popup helper
   const showPopup = useCallback((message) => {
     setPopupMessage(message);
     setIsPopupVisible(true);
   }, []);
 
-  // Submit handler with validation
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Basic inline validation
     if (!formData.name.trim()) return showPopup("Please enter your name.");
     if (!validateEmail(formData.email))
       return showPopup("Please enter a valid email.");
@@ -196,6 +187,7 @@ const BookTable = () => {
     const payload = {
       ...formData,
       type: "table",
+      status: "waiting",
     };
 
     try {
@@ -208,7 +200,9 @@ const BookTable = () => {
       const result = await response.json();
 
       if (response.ok) {
-        showPopup("🎉 Booking confirmed! Confirmation email sent.");
+        setReservationId(result.reservationId);
+        showPopup("🎉 Booking confirmed! Please proceed with payment.");
+        setIsPaymentModalOpen(true);
         setFormData({
           name: "",
           email: "",
@@ -230,272 +224,326 @@ const BookTable = () => {
     }
   };
 
-  // Disable booking button if date or time missing
+  const handlePaymentSuccess = async ({ paymentDetails, reservationId }) => {
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/payment/confirm-payment",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reservationId }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (response.ok) {
+        showPopup("🎉 Payment successful! Your booking is confirmed.");
+        setIsPaymentModalOpen(false);
+      } else {
+        showPopup("Payment failed: " + result.message);
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+      showPopup("Payment failed. Please try again.");
+    }
+  };
+
   const isBookDisabled = !formData.date || !formData.time;
 
   return (
-    <div
-      ref={formRef}
-      className="min-h-[80vh] flex flex-col items-center justify-center px-4 py-12 bg-gray-100"
-    >
-      <div className="max-w-6xl w-full flex flex-col md:flex-row bg-white rounded-lg shadow-lg overflow-hidden">
-        {/* Left image */}
-        <div className="md:w-1/2 h-72 md:h-auto">
-          <img
-            src={Img1}
-            alt="Restaurant interior"
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-        </div>
-
-        {/* Right form area */}
-        <div className="md:w-1/2 p-8 flex flex-col justify-center items-center space-y-10">
-          <h2 className="text-3xl font-bold text-gray-800 text-center md:text-left">
-            Reserve Your Table
-          </h2>
-
-          <div className="w-full max-w-xs flex flex-col gap-6">
-            <label htmlFor="date" className="sr-only">
-              Select date
-            </label>
-            <input
-              type="date"
-              id="date"
-              name="date"
-              value={formData.date}
-              onChange={handleChange}
-              required
-              className="border rounded-md p-3 w-full focus:outline-none focus:ring-2 focus:ring-black"
-              aria-describedby="dateHelp"
+    <>
+      <div className="flex flex-col justify-center items-center h-[50vh] bg-[url(/src/assets/menubg.jpg)] bg-bottom">
+        <div className="text-[4.5rem] text-white font-[300]">BOOK A TABLE</div>
+      </div>
+      <div
+        ref={formRef}
+        className="min-h-[80vh] flex flex-col items-center justify-center px-4 py-12 bg-gray-100"
+      >
+        <div className="max-w-6xl w-full flex flex-col md:flex-row bg-white rounded-lg shadow-lg overflow-hidden">
+          <div className="md:w-1/2 h-72 md:h-auto">
+            <img
+              src={Img1}
+              alt="Restaurant interior"
+              className="w-full h-full object-cover"
+              loading="lazy"
             />
+          </div>
 
-            <label htmlFor="time" className="sr-only">
-              Select time
-            </label>
-            <div className="relative" ref={dropdownRef}>
+          <div className="md:w-1/2 p-8 flex flex-col justify-center items-center space-y-10">
+            <h2 className="text-3xl font-bold text-gray-800 text-center md:text-left">
+              Reserve Your Table
+            </h2>
+
+            <div className="w-full max-w-xs flex flex-col gap-6">
+              <label htmlFor="date" className="sr-only">
+                Select date
+              </label>
               <input
-                id="time"
-                name="time"
-                type="text"
-                readOnly
-                value={formData.time}
-                onClick={() => setIsDropdownOpen((prev) => !prev)}
-                aria-haspopup="listbox"
-                aria-expanded={isDropdownOpen}
-                className="border rounded-md p-3 w-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-black"
-                aria-describedby="timeHelp"
+                type="date"
+                id="date"
+                name="date"
+                value={formData.date}
+                onChange={handleChange}
+                required
+                className="border rounded-md p-3 w-full focus:outline-none focus:ring-2 focus:ring-black"
+                aria-describedby="dateHelp"
               />
-              {isDropdownOpen && (
-                <ul
-                  role="listbox"
-                  tabIndex={-1}
-                  className="absolute left-0 right-0 bg-white border rounded-md shadow-lg max-h-48 overflow-auto z-20 mt-1"
-                >
-                  {generateTimes.map((timeOption, idx) => (
-                    <li
-                      key={idx}
-                      role="option"
-                      tabIndex={0}
-                      aria-selected={formData.time === timeOption}
-                      onClick={() => {
-                        setFormData((prev) => ({ ...prev, time: timeOption }));
-                        setIsDropdownOpen(false);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
+
+              <label htmlFor="time" className="sr-only">
+                Select time
+              </label>
+              <div className="relative" ref={dropdownRef}>
+                <input
+                  id="time"
+                  name="time"
+                  type="text"
+                  readOnly
+                  value={formData.time}
+                  onClick={() => setIsDropdownOpen((prev) => !prev)}
+                  aria-haspopup="listbox"
+                  aria-expanded={isDropdownOpen}
+                  className="border rounded-md p-3 w-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-black"
+                  aria-describedby="timeHelp"
+                />
+                {isDropdownOpen && (
+                  <ul
+                    role="listbox"
+                    tabIndex={-1}
+                    className="absolute left-0 right-0 bg-white border rounded-md shadow-lg max-h-48 overflow-auto z-20 mt-1"
+                  >
+                    {generateTimes.map((timeOption, idx) => (
+                      <li
+                        key={idx}
+                        role="option"
+                        tabIndex={0}
+                        aria-selected={formData.time === timeOption}
+                        onClick={() => {
                           setFormData((prev) => ({
                             ...prev,
                             time: timeOption,
                           }));
                           setIsDropdownOpen(false);
-                        }
-                      }}
-                      className={`p-3 cursor-pointer hover:bg-gray-200 ${
-                        formData.time === timeOption
-                          ? "bg-gray-300 font-semibold"
-                          : ""
-                      }`}
-                    >
-                      {timeOption}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            <label htmlFor="guests" className="sr-only">
-              Number of guests
-            </label>
-            <input
-              id="guests"
-              name="guests"
-              type="number"
-              min={1}
-              max={20}
-              value={formData.guests}
-              onChange={handleChange}
-              required
-              className="border rounded-md p-3 w-full focus:outline-none focus:ring-2 focus:ring-black"
-            />
-          </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              if (isBookDisabled) {
-                showPopup("Please fill in Date and Time to proceed.");
-                return;
-              }
-              setIsModalOpen(true);
-            }}
-            disabled={isBookDisabled}
-            className={`bg-black text-white px-6 py-3 rounded-md w-full max-w-xs transition ${
-              isBookDisabled
-                ? "opacity-50 cursor-not-allowed"
-                : "hover:bg-gray-800"
-            }`}
-          >
-            Book Table
-          </button>
-        </div>
-      </div>
-
-      {/* Modal */}
-      {isModalOpen && (
-        <div
-          ref={modalRef}
-          tabIndex={-1}
-          className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 px-4"
-          aria-modal="true"
-          role="dialog"
-          aria-labelledby="modal-title"
-          aria-describedby="modal-desc"
-        >
-          <div className="bg-white rounded-lg p-8 max-w-2xl w-full relative shadow-lg">
-            <button
-              aria-label="Close modal"
-              onClick={() => setIsModalOpen(false)}
-              className="absolute top-3 right-4 text-gray-500 hover:text-gray-800 text-3xl leading-none"
-            >
-              &times;
-            </button>
-
-            <h3
-              id="modal-title"
-              className="text-2xl font-semibold mb-6 text-center"
-            >
-              Complete Your Booking
-            </h3>
-
-            <form onSubmit={handleSubmit} aria-describedby="modal-desc">
-              <div className="space-y-6">
-                <label htmlFor="name" className="block font-medium">
-                  Full Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  placeholder="Full Name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="border rounded-md p-3 w-full focus:outline-none focus:ring-2 focus:ring-black"
-                />
-
-                <label htmlFor="email" className="block font-medium">
-                  Email <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="Email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="border rounded-md p-3 w-full focus:outline-none focus:ring-2 focus:ring-black"
-                />
-
-                <label htmlFor="phone" className="block font-medium">
-                  Phone Number <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  placeholder="Phone Number"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  required
-                  className="border rounded-md p-3 w-full focus:outline-none focus:ring-2 focus:ring-black"
-                />
-
-                <label htmlFor="requests" className="block font-medium">
-                  Special Requests
-                </label>
-                <textarea
-                  id="requests"
-                  name="requests"
-                  rows="3"
-                  placeholder="Special Requests"
-                  value={formData.requests}
-                  onChange={handleChange}
-                  className="border rounded-md p-3 w-full focus:outline-none focus:ring-2 focus:ring-black"
-                />
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setFormData((prev) => ({
+                              ...prev,
+                              time: timeOption,
+                            }));
+                            setIsDropdownOpen(false);
+                          }
+                        }}
+                        className={`p-3 cursor-pointer hover:bg-gray-200 ${
+                          formData.time === timeOption
+                            ? "bg-gray-300 font-semibold"
+                            : ""
+                        }`}
+                      >
+                        {timeOption}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
-              <button
-                type="submit"
-                disabled={isLoading}
-                className={`bg-black text-white px-6 py-3 rounded-md hover:bg-gray-800 transition w-full flex justify-center items-center mt-6 ${
-                  isLoading ? "cursor-not-allowed opacity-70" : ""
-                }`}
-              >
-                {isLoading ? (
-                  <svg
-                    className="animate-spin h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v8z"
-                    ></path>
-                  </svg>
-                ) : (
-                  "Confirm Reservation"
-                )}
-              </button>
-            </form>
+              <label htmlFor="guests" className="sr-only">
+                Number of guests
+              </label>
+              <input
+                id="guests"
+                name="guests"
+                type="number"
+                min={1}
+                max={20}
+                value={formData.guests}
+                onChange={handleChange}
+                required
+                className="border rounded-md p-3 w-full focus:outline-none focus:ring-2 focus:ring-black"
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (isBookDisabled) {
+                  showPopup("Please fill in Date and Time to proceed.");
+                  return;
+                }
+                setIsModalOpen(true);
+              }}
+              disabled={isBookDisabled}
+              className={`bg-black text-white px-6 py-3 rounded-md w-full max-w-xs transition ${
+                isBookDisabled
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-gray-800"
+              }`}
+            >
+              Book Table
+            </button>
           </div>
         </div>
-      )}
 
-      {/* Popup */}
-      {isPopupVisible && (
-        <div
-          ref={popupRef}
-          className="fixed bottom-5 right-5 bg-green-600 text-white px-6 py-3 rounded-md shadow-lg z-50 select-none"
-          role="alert"
-          aria-live="assertive"
-        >
-          {popupMessage}
-        </div>
-      )}
-    </div>
+        {isModalOpen && (
+          <div
+            ref={modalRef}
+            tabIndex={-1}
+            className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 px-4"
+            aria-modal="true"
+            role="dialog"
+            aria-labelledby="modal-title"
+            aria-describedby="modal-desc"
+          >
+            <div className="bg-white rounded-lg p-8 max-w-2xl w-full relative shadow-lg">
+              <button
+                aria-label="Close modal"
+                onClick={() => setIsModalOpen(false)}
+                className="absolute top-3 right-4 text-gray-500 hover:text-gray-800 text-3xl leading-none"
+              >
+                &times;
+              </button>
+
+              <h3
+                id="modal-title"
+                className="text-2xl font-semibold mb-6 text-center"
+              >
+                Complete Your Booking
+              </h3>
+
+              <form onSubmit={handleSubmit} aria-describedby="modal-desc">
+                <div className="space-y-6">
+                  <label htmlFor="name" className="block font-medium">
+                    Full Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    placeholder="Full Name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    className="border rounded-md p-3 w-full focus:outline-none focus:ring-2 focus:ring-black"
+                  />
+
+                  <label htmlFor="email" className="block font-medium">
+                    Email <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="Email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    className="border rounded-md p-3 w-full focus:outline-none focus:ring-2 focus:ring-black"
+                  />
+
+                  <label htmlFor="phone" className="block font-medium">
+                    Phone Number <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    placeholder="Phone Number"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    required
+                    className="border rounded-md p-3 w-full focus:outline-none focus:ring-2 focus:ring-black"
+                  />
+
+                  <label htmlFor="requests" className="block font-medium">
+                    Special Requests
+                  </label>
+                  <textarea
+                    id="requests"
+                    name="requests"
+                    rows="3"
+                    placeholder="Special Requests"
+                    value={formData.requests}
+                    onChange={handleChange}
+                    className="border rounded-md p-3 w-full focus:outline-none focus:ring-2 focus:ring-black"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className={`bg-black text-white px-6 py-3 rounded-md hover:bg-gray-800 transition w-full flex justify-center items-center mt-6 ${
+                    isLoading ? "cursor-not-allowed opacity-70" : ""
+                  }`}
+                >
+                  {isLoading ? (
+                    <svg
+                      className="animate-spin h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v8z"
+                      ></path>
+                    </svg>
+                  ) : (
+                    "Confirm Reservation"
+                  )}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+        {isPaymentModalOpen && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 px-4"
+            aria-modal="true"
+          >
+            <div className="bg-white rounded-lg p-8 max-w-2xl w-full relative shadow-lg">
+              <button
+                aria-label="Close modal"
+                onClick={() => setIsPaymentModalOpen(false)}
+                className="absolute top-3 right-4 text-gray-500 hover:text-gray-800 text-3xl leading-none"
+              >
+                &times;
+              </button>
+
+              <h3 className="text-2xl font-semibold mb-6 text-center">
+                Enter Payment Details
+              </h3>
+
+              <PaymentForm
+                amount={1000}
+                reservationId={reservationId}
+                onPaymentSuccess={handlePaymentSuccess}
+              />
+            </div>
+          </div>
+        )}
+
+        {isPopupVisible && (
+          <div
+            ref={popupRef}
+            className="fixed bottom-5 right-5 bg-green-600 text-white px-6 py-3 rounded-md shadow-lg z-50 select-none"
+            role="alert"
+            aria-live="assertive"
+          >
+            {popupMessage}
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 

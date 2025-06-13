@@ -1,5 +1,5 @@
 const express = require("express");
-const router = express.Router(); // <<< THIS LINE fixes the ReferenceError
+const router = express.Router();
 const Reservation = require("../models/Reservation");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
@@ -10,7 +10,8 @@ router.post("/", async (req, res) => {
   try {
     const newReservation = new Reservation({
       ...data,
-      type: data.type || "table", // defaults to 'table'
+      type: data.type || "table",
+      status: "waiting",
     });
 
     await newReservation.save();
@@ -35,7 +36,7 @@ router.post("/", async (req, res) => {
         ? `
 Hi ${data.name},
 
-Your event reservation has been confirmed!
+Your event reservation is in waiting status, please complete the payment to confirm.
 
 Event: ${data.eventName}
 Date: ${data.date}
@@ -44,7 +45,7 @@ Guests: ${data.persons}
 Duration: ${data.duration}
 Notes: ${data.requests || "None"}
 
-We look forward to hosting your event!
+We look forward to hosting your event once payment is successful!
 
 Best regards,  
 Snoozer Eatery
@@ -52,21 +53,24 @@ Snoozer Eatery
         : `
 Hi ${data.name},
 
-Your table reservation has been confirmed!
+Your table reservation is in waiting status, please complete the payment to confirm.
 
 Date: ${data.date}
 Time: ${data.time}
 Guests: ${data.guests}
 Special Requests: ${data.requests || "None"}
 
-Thank you for choosing Snoozer Eatery!
+Thank you for choosing Snoozer Eatery. Once payment is successful, your booking will be confirmed.
 
         `,
     };
 
     await transporter.sendMail(mailOptions);
 
-    res.status(200).json({ message: "Reservation saved and email sent!" });
+    res.status(200).json({
+      message: "Reservation saved and email sent!",
+      reservationId: newReservation._id,
+    });
   } catch (error) {
     console.error("Error handling reservation:", error.message);
     res.status(500).json({ message: "Server error while saving reservation." });

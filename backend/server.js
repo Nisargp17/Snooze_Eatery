@@ -2,12 +2,38 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
+
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
 const reservationRoutes = require("./routes/reservations");
 app.use("/api/reservations", reservationRoutes);
+
+const paymentRoutes = require("./routes/payments");
+app.use("/api/payment", paymentRoutes);
+
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+
+app.post("/create-payment-intent", async (req, res) => {
+  try {
+    const { amount } = req.body;
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount,
+      currency: "usd",
+      payment_method_types: ["card"],
+    });
+
+    res.send({
+      clientSecret: paymentIntent.client_secret,
+    });
+  } catch (error) {
+    console.error("Payment Intent creation failed", error);
+    res.status(500).send({ error: "Payment intent creation failed" });
+  }
+});
 
 mongoose
   .connect(process.env.MONGO_URI, {

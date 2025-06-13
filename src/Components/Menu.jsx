@@ -157,11 +157,10 @@ const Section = ({ title, image, items, reverse }) => {
 
     const section = sectionRef.current;
 
-    // ScrollTrigger animates on enter and reverses on leave back
     const trigger = ScrollTrigger.create({
       trigger: section,
       start: "top 70%",
-      toggleActions: "play reverse play reverse", // animation plays and reverses smoothly
+      toggleActions: "play reverse play reverse",
       onEnter: () => {
         if (hasAnimated.current) return;
 
@@ -211,7 +210,6 @@ const Section = ({ title, image, items, reverse }) => {
         reverse ? "flex-row-reverse" : ""
       } transition-opacity duration-1000`}
     >
-      {/* Image container with responsive sizing */}
       <div className="h-[75vh] w-full sm:w-[40vw] md:w-[30vw] rounded-t-[100%] overflow-hidden shadow-lg">
         <img
           loading="lazy"
@@ -221,7 +219,6 @@ const Section = ({ title, image, items, reverse }) => {
         />
       </div>
 
-      {/* Text and items */}
       <div className="flex flex-col gap-10 max-w-xl px-2 sm:px-6">
         <h2
           id={`${title.toLowerCase()}-heading`}
@@ -234,7 +231,7 @@ const Section = ({ title, image, items, reverse }) => {
             <article
               key={index}
               className="menu-item opacity-0 mb-6 p-4 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-default"
-              tabIndex={0} // Make items focusable for accessibility
+              tabIndex={0}
               aria-label={`${item.name}, ${item.description}, priced at ${item.price}`}
             >
               <div className="flex items-center gap-3">
@@ -258,7 +255,6 @@ const Section = ({ title, image, items, reverse }) => {
 };
 
 const Menu = () => {
-  // Memoize sections so they don't get recreated on every render
   const sections = useMemo(
     () => [
       {
