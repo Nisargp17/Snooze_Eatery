@@ -30,6 +30,7 @@ const BookTable = () => {
   const [popupMessage, setPopupMessage] = useState("");
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [reservationId, setReservationId] = useState(null);
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
   const [formData, setFormData] = useState({
     name: "",
@@ -191,7 +192,7 @@ const BookTable = () => {
     };
 
     try {
-      const response = await fetch("http://localhost:5000/api/reservations", {
+      const response = await fetch(`${API_BASE}/api/reservations`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -226,14 +227,11 @@ const BookTable = () => {
 
   const handlePaymentSuccess = async ({ paymentDetails, reservationId }) => {
     try {
-      const response = await fetch(
-        "http://localhost:5000/api/payment/confirm-payment",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ reservationId }),
-        }
-      );
+      const response = await fetch(`${API_BASE}/api/payment/confirm-payment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reservationId }),
+      });
 
       const result = await response.json();
 

@@ -7,6 +7,7 @@ const PaymentForm = ({ amount, reservationId, onPaymentSuccess }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
 
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -20,7 +21,7 @@ const PaymentForm = ({ amount, reservationId, onPaymentSuccess }) => {
     setIsProcessing(true);
 
     try {
-      const res = await fetch("http://localhost:5000/create-payment-intent", {
+      const res = await fetch(`${API_BASE}/create-payment-intent`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ amount }),

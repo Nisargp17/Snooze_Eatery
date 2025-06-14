@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
-import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
 
 const InputField = ({
   id,
@@ -22,11 +21,7 @@ const InputField = ({
       className="block text-sm mb-1 text-gray-700 font-medium"
     >
       {label}
-      {required && (
-        <span aria-hidden="true" className="text-red-600 ml-1">
-          *
-        </span>
-      )}
+      {required && <span className="text-red-600 ml-1">*</span>}
     </label>
     <input
       id={id}
@@ -41,8 +36,9 @@ const InputField = ({
       autoComplete={autoComplete}
       aria-invalid={!!error}
       aria-describedby={error ? `${id}-error` : undefined}
-      className={`w-full border rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black
-        ${error ? "border-red-500" : "border-gray-300"}`}
+      className={`w-full border rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black ${
+        error ? "border-red-500" : "border-gray-300"
+      }`}
     />
     {error && (
       <p
@@ -72,11 +68,7 @@ const TextAreaField = ({
       className="block text-sm mb-1 text-gray-700 font-medium"
     >
       {label}
-      {required && (
-        <span aria-hidden="true" className="text-red-600 ml-1">
-          *
-        </span>
-      )}
+      {required && <span className="text-red-600 ml-1">*</span>}
     </label>
     <textarea
       id={id}
@@ -88,8 +80,9 @@ const TextAreaField = ({
       aria-invalid={!!error}
       aria-describedby={error ? `${id}-error` : undefined}
       rows={4}
-      className={`w-full border rounded-md px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-black
-        ${error ? "border-red-500" : "border-gray-300"}`}
+      className={`w-full border rounded-md px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-black ${
+        error ? "border-red-500" : "border-gray-300"
+      }`}
     />
     {error && (
       <p
@@ -105,7 +98,7 @@ const TextAreaField = ({
 
 const ReservationForm = () => {
   const containerRef = useRef(null);
-
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -132,7 +125,6 @@ const ReservationForm = () => {
     });
   }, []);
 
-  // Simple validation rules
   const validate = () => {
     const newErrors = {};
 
@@ -162,7 +154,6 @@ const ReservationForm = () => {
     }
 
     setErrors(newErrors);
-
     return Object.keys(newErrors).length === 0;
   };
 
@@ -176,7 +167,6 @@ const ReservationForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!validate()) return;
 
     setLoading(true);
@@ -195,21 +185,20 @@ const ReservationForm = () => {
     };
 
     try {
-      const res = await fetch("http://localhost:5000/api/reservations", {
+      const res = await fetch(`${API_BASE}/api/reservations`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(reservation),
       });
 
-      if (!res.ok) {
-        throw new Error("Network response was not ok");
-      }
+      if (!res.ok) throw new Error("Network response was not ok");
 
       const data = await res.json();
       setSubmitStatus({
         type: "success",
         message: data.message || "Reservation successful!",
       });
+
       setFormData({
         name: "",
         email: "",
@@ -234,9 +223,10 @@ const ReservationForm = () => {
 
   return (
     <>
-      <div className="flex flex-col justify-center items-center h-[50vh] bg-[url(/src/assets/reservationbg.jpg)]  bg-bottom">
+      <div className="flex flex-col justify-center items-center h-[50vh] bg-[url(/src/assets/reservationbg.jpg)] bg-bottom">
         <div className="text-[4.5rem] text-white font-[300]">BOOK A TABLE</div>
       </div>
+
       <section
         className="min-h-screen bg-white text-black flex items-center justify-center px-6 py-16"
         aria-labelledby="reservation-heading"
@@ -360,14 +350,11 @@ const ReservationForm = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className={`w-full py-3 rounded-md bg-black text-white transition
-                focus:outline-none focus:ring-2 focus:ring-black
-                ${
+                className={`w-full py-3 rounded-md bg-black text-white transition focus:outline-none focus:ring-2 focus:ring-black ${
                   loading
                     ? "opacity-50 cursor-not-allowed"
                     : "hover:bg-neutral-900"
                 }`}
-                aria-busy={loading}
               >
                 {loading ? "Submitting..." : "Confirm Reservation"}
               </button>
