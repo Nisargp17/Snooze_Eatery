@@ -1,5 +1,5 @@
-const express = require("express");
 require("dotenv").config();
+const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 
@@ -36,7 +36,7 @@ app.post("/create-payment-intent", async (req, res) => {
 });
 
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(process.env.MONGODB_URI)
   .then(() => {
     console.log("✅ Connected to MongoDB Atlas");
     app.listen(process.env.PORT || 5000, () => {
