@@ -4,15 +4,11 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 
 const app = express();
-
+const allowedOrigins = ["http://localhost:5173", "https://nisargp17.github.io"];
 app.use(
   cors({
-    origin: [
-      "https://nisargp17.github.io/Snooze_Eatery/",
-      "http://localhost:5173",
-    ],
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
-    credentials: true,
   })
 );
 app.use(express.json());
