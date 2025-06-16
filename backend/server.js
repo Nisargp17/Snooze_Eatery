@@ -43,13 +43,15 @@ app.post("/create-payment-intent", async (req, res) => {
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
-    console.log("✅ Connected to MongoDB Atlas");
-    app.listen(process.env.PORT || 5000, () => {
+    console.log("Connected to MongoDB Atlas");
+    app.listen(process.env.VITE_API_BASE_URL || 5000, () => {
       console.log(
-        `🚀 Server running at http://localhost:${process.env.PORT || 5000}`
+        ` Server running at ${
+          process.env.VITE_API_BASE_URL || "http://localhost:5000"
+        }`
       );
     });
   })
   .catch((err) => {
-    console.error("❌ MongoDB connection error:", err.message);
+    console.error("MongoDB connection error:", err.message);
   });
