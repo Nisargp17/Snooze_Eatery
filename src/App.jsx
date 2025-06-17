@@ -5,7 +5,7 @@ import "./App.css";
 import NavBar from "./Components/NavBar";
 import Home from "./Components/Home";
 import Menu from "./Components/Menu";
-import mainFooter from "./Components/mainFooter";
+import NewFooter from "./Components/newFooter";
 import BookTable from "./Components/BookTable";
 import Contact from "./Components/Contact";
 import ReservationForm from "./Components/ReservationForm";
@@ -49,7 +49,7 @@ function App() {
         <Route path="/reservation" element={<ReservationForm />} />
         <Route path="/contact" element={<Contact />} />
       </Routes>
-      <mainFooter />
+      <NewFooter />
     </Router>
   );
 }

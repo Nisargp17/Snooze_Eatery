@@ -1,6 +1,8 @@
 import img1 from "/src/assets/food9.jpg";
+import img2 from "/src/assets/food11.jpg";
 
 function HomePage2() {
+  const images = [img1, img2];
   return (
     <section className="h-[75vh] flex flex-col justify-center items-center text-[#242432] text-center px-6">
       <header className="mb-4">
@@ -15,11 +17,11 @@ function HomePage2() {
       </article>
 
       <div className="flex justify-center gap-[10vh]">
-        {[0, 1].map((i) => (
+        {images.map((img, i) => (
           <img
             key={i}
-            className="h-[35vh] object-cover rounded-lg shadow-md"
-            src={img1}
+            className="h-[35vh] w-[30vw] object-cover rounded-lg shadow-md"
+            src={img}
             alt={`Delicious food presentation ${i + 1}`}
           />
         ))}
