@@ -15,6 +15,7 @@ router.post("/", async (req, res) => {
     });
 
     await newReservation.save();
+    console.log("Reservation saved:", newReservation);
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
