@@ -39,7 +39,7 @@ app.post("/create-payment-intent", async (req, res) => {
     res.status(500).send({ error: "Payment intent creation failed" });
   }
 });
-
+const PORT = process.env.PORT || 5000;
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
