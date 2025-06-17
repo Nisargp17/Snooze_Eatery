@@ -44,12 +44,8 @@ mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
     console.log("Connected to MongoDB Atlas");
-    app.listen(process.env.VITE_API_BASE_URL || 5000, () => {
-      console.log(
-        ` Server running at ${
-          process.env.VITE_API_BASE_URL || "http://localhost:5000"
-        }`
-      );
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
     });
   })
   .catch((err) => {
