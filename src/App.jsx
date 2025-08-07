@@ -5,7 +5,7 @@ import "./App.css";
 import NavBar from "./Components/NavBar";
 import Home from "./Components/Home";
 import Menu from "./Components/Menu";
-import NewFooter from "./Components/newFooter";
+import NewFooter from "./Components/NewFooter";
 import BookTable from "./Components/BookTable";
 import Contact from "./Components/Contact";
 import ReservationForm from "./Components/ReservationForm";
@@ -19,6 +19,9 @@ const stripePromise = loadStripe(
 
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import Cart from "./Components/Cart";
+import { Provider } from "react-redux";
+import { store } from "./app/Store";
 
 const ScrollToTop = () => {
   const location = useLocation();
@@ -33,23 +36,26 @@ const ScrollToTop = () => {
 function App() {
   return (
     <Router>
-      <ScrollToTop />
-      <NavBar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/menu" element={<Menu />} />
-        <Route
-          path="/book-table"
-          element={
-            <Elements stripe={stripePromise}>
-              <BookTable />
-            </Elements>
-          }
-        />
-        <Route path="/reservation" element={<ReservationForm />} />
-        <Route path="/contact" element={<Contact />} />
-      </Routes>
-      <NewFooter />
+      <Provider store={store}>
+        <ScrollToTop />
+        <NavBar />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/menu" element={<Menu />} />
+          <Route
+            path="/book-table"
+            element={
+              <Elements stripe={stripePromise}>
+                <BookTable />
+              </Elements>
+            }
+          />
+          <Route path="/reservation" element={<ReservationForm />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/Cart" element={<Cart />} />
+        </Routes>
+        <NewFooter />
+      </Provider>
     </Router>
   );
 }
