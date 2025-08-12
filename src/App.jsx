@@ -9,6 +9,7 @@ import NewFooter from "./Components/NewFooter";
 import BookTable from "./Components/BookTable";
 import Contact from "./Components/Contact";
 import ReservationForm from "./Components/ReservationForm";
+import Login from "./Components/Login";
 
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
@@ -57,6 +58,7 @@ function App() {
         <NewFooter />
       </Provider>
     </Router>
+    // <Login />
   );
 }
 

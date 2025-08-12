@@ -1,11 +1,20 @@
 import { useDispatch } from "react-redux";
 import { vegMenu } from "../../data/MenuData";
 import { addToCart } from "../../features/cart/CartSlice";
+import { useState } from "react";
 function HomePage4() {
   const dispatch = useDispatch();
+  const [isPopup, setIsPopup] = useState(false);
+
   return (
     <>
       <section className="flex flex-col items-center bg-[#f9f9f9] min-h-screen py-8">
+        {isPopup && (
+          <div className="fixed top-6 right-5 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-slide-in">
+            Item Added to Cart!
+          </div>
+        )}
+
         <div className="text-[3vw] font-bold text-[#2e2e2e] my-6 uppercase border-b-4 ">
           Menu
         </div>
@@ -28,7 +37,11 @@ function HomePage4() {
               </div>
               <button
                 className="bg-[#444444] text-white px-[10px] py-[8px] rounded-[20px]"
-                onClick={() => dispatch(addToCart(item))}
+                onClick={() => {
+                  dispatch(addToCart(item));
+                  setIsPopup(true);
+                  setTimeout(() => setIsPopup(false), 2000);
+                }}
               >
                 Add To Cart
               </button>

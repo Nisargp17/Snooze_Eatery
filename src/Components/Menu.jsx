@@ -1,4 +1,6 @@
-import { useEffect, useRef, useMemo } from "react";
+import "./Menu.css";
+
+import { useEffect, useRef, useMemo, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -8,37 +10,27 @@ import { addToCart } from "../features/cart/CartSlice";
 import { useDispatch } from "react-redux";
 gsap.registerPlugin(ScrollTrigger);
 
-const Section = ({ title, image, items, reverse }) => {
-  const dispatch = useDispatch();
+const Section = ({ title, image, items, reverse, onAddToCart }) => {
   const sectionRef = useRef(null);
   const hasAnimated = useRef(false);
-
-  const handleSubmit = (items) => {
-    dispatch(addToCart(items));
-    alert("Item Added To cart");
-  };
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   useEffect(() => {
-    if (!sectionRef.current) return;
+    if (!sectionRef.current || !imageLoaded) return;
 
     const section = sectionRef.current;
 
     const trigger = ScrollTrigger.create({
       trigger: section,
       start: "top 70%",
-      toggleActions: "play reverse play reverse",
+      toggleActions: "play none none none",
       onEnter: () => {
         if (hasAnimated.current) return;
 
         gsap.fromTo(
           section,
           { autoAlpha: 0, y: 100 },
-          {
-            autoAlpha: 1,
-            y: 0,
-            duration: 1,
-            ease: "power3.out",
-          }
+          { autoAlpha: 1, y: 0, duration: 1, ease: "power3.out" }
         );
 
         gsap.fromTo(
@@ -56,56 +48,46 @@ const Section = ({ title, image, items, reverse }) => {
 
         hasAnimated.current = true;
       },
-      onLeaveBack: () => {
-        // Optional: reset animation if needed (commented out)
-        // hasAnimated.current = false;
-      },
     });
 
-    return () => {
-      trigger.kill();
-    };
-  }, []);
+    return () => trigger.kill();
+  }, [imageLoaded]);
 
   return (
     <section
       ref={sectionRef}
-      role="region"
-      aria-labelledby={`${title.toLowerCase()}-heading`}
       className={`opacity-0 flex flex-wrap justify-center items-center gap-10 my-24 px-4 md:px-12 ${
         reverse ? "flex-row-reverse" : ""
-      } transition-opacity duration-1000`}
+      }`}
     >
+      {/* Image Container */}
       <div className="h-[75vh] w-full sm:w-[40vw] md:w-[30vw] rounded-t-[100%] overflow-hidden shadow-lg">
         <img
-          loading="lazy"
           className="h-full w-full object-cover rounded-t-[100%]"
           src={image}
           alt={`Photo of ${title} section`}
+          loading="lazy"
+          onLoad={() => setImageLoaded(true)}
         />
       </div>
 
+      {/* Text + Items */}
       <div className="flex flex-col gap-10 max-w-xl px-2 sm:px-6">
-        <h2
-          id={`${title.toLowerCase()}-heading`}
-          className="text-gray-800 text-4xl uppercase font-semibold tracking-wide"
-        >
+        <h2 className="text-gray-800 text-4xl uppercase font-semibold tracking-wide">
           {title}
         </h2>
         <div>
           {items.map((item, index) => (
             <article
               key={index}
-              className="menu-item opacity-0 mb-6 p-4 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-default"
-              tabIndex={0}
-              aria-label={`${item.name}, ${item.description}, priced at ${item.price}`}
+              className="menu-item opacity-0 mb-6 p-4 border border-gray-200 rounded-lg shadow-sm"
             >
               <div className="flex items-center gap-3">
                 <h3 className="text-xl font-semibold text-gray-900">
                   {item.name}
                 </h3>
                 {item.tag && (
-                  <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full select-none">
+                  <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">
                     {item.tag}
                   </span>
                 )}
@@ -115,7 +97,7 @@ const Section = ({ title, image, items, reverse }) => {
               <div>
                 <button
                   className="bg-[#444444] text-white px-[10px] py-[8px] rounded-[20px]"
-                  onClick={() => handleSubmit(item)}
+                  onClick={() => onAddToCart(item)}
                 >
                   Add To Cart
                 </button>
@@ -129,25 +111,34 @@ const Section = ({ title, image, items, reverse }) => {
 };
 
 const Menu = () => {
+  const dispatch = useDispatch();
   const sections = useMemo(() => menuSections, []);
+  const [popup, setPopup] = useState(false);
+
+  const handleAddToCart = (item) => {
+    dispatch(addToCart(item));
+    setPopup(true);
+    setTimeout(() => setPopup(false), 2000);
+  };
 
   return (
     <>
       <header
-        role="banner"
         className="flex flex-col justify-center items-center h-[50vh] bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${img1})` }}
       >
-        <h1 className="text-white font-light text-6xl sm:text-7xl md:text-8xl select-none">
+        <h1 className="text-white font-light text-6xl sm:text-7xl md:text-8xl">
           MENU
         </h1>
       </header>
 
-      <main
-        role="main"
-        aria-label="Restaurant menu sections"
-        className="px-4 md:px-12"
-      >
+      <main className="px-4 md:px-12">
+        {popup && (
+          <div className="fixed top-6 right-5 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-slide-in">
+            Item Added to Cart!
+          </div>
+        )}
+
         {sections.map(({ title, image, items, reverse }) => (
           <Section
             key={title}
@@ -155,10 +146,12 @@ const Menu = () => {
             image={image}
             items={items}
             reverse={reverse}
+            onAddToCart={handleAddToCart}
           />
         ))}
       </main>
     </>
   );
 };
+
 export default Menu;

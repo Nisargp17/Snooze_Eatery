@@ -1,23 +1,52 @@
-const express = require("express");
-const router = express.Router();
-const Reservation = require("../models/Reservation");
-const nodemailer = require("nodemailer");
+import { Router } from "express";
+const router = Router();
+import Reservation from "../models/Reservation";
+import { createTransport } from "nodemailer";
 require("dotenv").config();
 
 router.post("/", async (req, res) => {
   const data = req.body;
 
   try {
+    const eventStart = new data(`${data.data}T${data.time}`);
+    const durationHours = Number(data.duration) || 0;
+    const eventEnd = new date(
+      eventStart.getTime() + durationHours * 60 * 60 * 1000
+    );
+
+    const bufferMs = 4 * 60 * 60 * 1000;
+
+    const minAllowedStart = new data(eventStart.getTime() - bufferMs);
+    const maxAllowedEnd = new data(eventStart.getTime() + bufferMs);
+
+    const checkConflict = await Reservation.findOne({
+      date: date.data,
+      $or: [
+        {
+          startTime: { $lt: maxAllowedEnd },
+          endTime: { $gt: minAllowedStart },
+        },
+      ],
+    });
+
+    if (checkConflict) {
+      return res.status(400).json({
+        message: "This time slot is not available. Please choose another time.",
+      });
+    }
+
     const newReservation = new Reservation({
       ...data,
       type: data.type || "table",
       status: "waiting",
+      startTime: eventStart,
+      endTime: eventEnd,
     });
 
     await newReservation.save();
     console.log("Reservation saved:", newReservation);
 
-    const transporter = nodemailer.createTransport({
+    const transporter = createTransport({
       service: "gmail",
       auth: {
         user: process.env.EMAIL_USER,
@@ -78,4 +107,4 @@ Thank you for choosing Snoozer Eatery. Once payment is successful, your booking 
   }
 });
 
-module.exports = router;
+export default router;
