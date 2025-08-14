@@ -1,10 +1,9 @@
 function Login() {
   return (
     <>
-      {" "}
-      <div className="flex h-screen bg-blue-500 justify-center items-center relative overflow-hidden">
+      <div className="flex h-screen bg-blue-500 justify-center items-center overflow-hidden">
         <div className="flex absolute justify-center items-center bg-white h-[735.36px] w-[630px]  flex-col rounded-[20px]">
-          <div className="flex items-center justify-center flex-col w-[516px] h-[556]">
+          <div className="flex items-center justify-center flex-col w-[516px] h-[556px]">
             <div className=" text-[32px] text-[#202224] font-[700] -tracking-[0.11px] leading-[100%] ">
               Login To Account
             </div>
@@ -79,15 +78,6 @@ function Login() {
             >
               Sign In
             </button>
-
-            <div className="w-[343px] h-[25px] pt-[32px] flex justify-center items-center gap-[2px]">
-              <span className="text-[18px] text-[#202224] font-[600] opacity-[65%] -tracking-[0.06px]">
-                Don't have an account?
-              </span>
-              <span className=" text-[18px] text-[#5A8CFF] font-[700] -tracking-[0.06px] underline ">
-                Create Account
-              </span>
-            </div>
           </div>
         </div>
       </div>

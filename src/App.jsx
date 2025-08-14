@@ -23,6 +23,8 @@ import { useLocation } from "react-router-dom";
 import Cart from "./Components/Cart";
 import { Provider } from "react-redux";
 import { store } from "./app/Store";
+import Signup from "./Components/Signup";
+import AuthContainer from "./Components/AuthContainer";
 
 const ScrollToTop = () => {
   const location = useLocation();
@@ -36,29 +38,33 @@ const ScrollToTop = () => {
 
 function App() {
   return (
-    <Router>
-      <Provider store={store}>
-        <ScrollToTop />
-        <NavBar />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/menu" element={<Menu />} />
-          <Route
-            path="/book-table"
-            element={
-              <Elements stripe={stripePromise}>
-                <BookTable />
-              </Elements>
-            }
-          />
-          <Route path="/reservation" element={<ReservationForm />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/Cart" element={<Cart />} />
-        </Routes>
-        <NewFooter />
-      </Provider>
-    </Router>
-    // <Login />
+    <>
+      {/* <Login />
+      <Signup /> */}
+      <AuthContainer />
+    </>
+    // <Router>
+    //   <Provider store={store}>
+    //     <ScrollToTop />
+    //     <NavBar />
+    //     <Routes>
+    //       <Route path="/" element={<Home />} />
+    //       <Route path="/menu" element={<Menu />} />
+    //       <Route
+    //         path="/book-table"
+    //         element={
+    //           <Elements stripe={stripePromise}>
+    //             <BookTable />
+    //           </Elements>
+    //         }
+    //       />
+    //       <Route path="/reservation" element={<ReservationForm />} />
+    //       <Route path="/contact" element={<Contact />} />
+    //       <Route path="/Cart" element={<Cart />} />
+    //     </Routes>
+    //     <NewFooter />
+    //   </Provider>
+    // </Router>
   );
 }
 
