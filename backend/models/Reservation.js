@@ -18,4 +18,4 @@ const reservationSchema = new Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-export default model("Reservation", reservationSchema);
+export default model("reservation", reservationSchema);
