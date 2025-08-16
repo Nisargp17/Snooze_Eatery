@@ -1,12 +1,13 @@
 import { Router } from "express";
+import Reservation from "../models/reservation.js";
+
 const router = Router();
-import { findById } from "../models/Reservation";
 
 router.post("/confirm-payment", async (req, res) => {
   const { reservationId } = req.body;
 
   try {
-    const reservation = await findById(reservationId);
+    const reservation = await Reservation.findById(reservationId);
 
     if (!reservation) {
       return res.status(404).json({ message: "Reservation not found." });
