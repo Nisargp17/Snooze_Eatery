@@ -2,7 +2,8 @@ import { Router } from "express";
 const router = Router();
 import Reservation from "../models/reservation.js";
 import { createTransport } from "nodemailer";
-require("dotenv").config();
+import dotenv from "dotenv";
+dotenv.config();
 
 router.post("/", async (req, res) => {
   const data = req.body;
