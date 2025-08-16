@@ -1,6 +1,6 @@
 import { Router } from "express";
 const router = Router();
-import Reservation from "../models/Reservation";
+import Reservation from "../models/reservation.js";
 import { createTransport } from "nodemailer";
 require("dotenv").config();
 
@@ -8,19 +8,18 @@ router.post("/", async (req, res) => {
   const data = req.body;
 
   try {
-    const eventStart = new data(`${data.data}T${data.time}`);
+    const eventStart = new Date(`${data.date}T${data.time}`);
     const durationHours = Number(data.duration) || 0;
-    const eventEnd = new date(
+    const eventEnd = new Date(
       eventStart.getTime() + durationHours * 60 * 60 * 1000
     );
 
     const bufferMs = 4 * 60 * 60 * 1000;
-
-    const minAllowedStart = new data(eventStart.getTime() - bufferMs);
-    const maxAllowedEnd = new data(eventStart.getTime() + bufferMs);
+    const minAllowedStart = new Date(eventStart.getTime() - bufferMs);
+    const maxAllowedEnd = new Date(eventStart.getTime() + bufferMs);
 
     const checkConflict = await Reservation.findOne({
-      date: date.data,
+      date: data.date,
       $or: [
         {
           startTime: { $lt: maxAllowedEnd },
