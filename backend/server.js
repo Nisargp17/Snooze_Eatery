@@ -1,10 +1,18 @@
-require("dotenv").config();
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
+import dotenv from "dotenv";
+dotenv.config();
+
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+
+import reservationRoutes from "./routes/reservations.js";
+import paymentRoutes from "./routes/payments.js";
+
+import Stripe from "stripe";
 
 const app = express();
 const allowedOrigins = ["http://localhost:5173", "https://nisargp17.github.io"];
+
 app.use(
   cors({
     origin: allowedOrigins,
@@ -13,13 +21,10 @@ app.use(
 );
 app.use(express.json());
 
-const reservationRoutes = require("./routes/reservations");
 app.use("/api/reservations", reservationRoutes);
-
-const paymentRoutes = require("./routes/payments");
 app.use("/api/payment", paymentRoutes);
 
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 app.post("/create-payment-intent", async (req, res) => {
   try {
@@ -39,6 +44,7 @@ app.post("/create-payment-intent", async (req, res) => {
     res.status(500).send({ error: "Payment intent creation failed" });
   }
 });
+
 const PORT = process.env.PORT || 5000;
 mongoose
   .connect(process.env.MONGODB_URI)
