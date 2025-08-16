@@ -9,7 +9,6 @@ import NewFooter from "./Components/NewFooter";
 import BookTable from "./Components/BookTable";
 import Contact from "./Components/Contact";
 import ReservationForm from "./Components/ReservationForm";
-import Login from "./Components/Login";
 
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
@@ -41,30 +40,30 @@ function App() {
     <>
       {/* <Login />
       <Signup /> */}
-      <AuthContainer />
+      {/* <AuthContainer /> */}
+      <Router>
+        <Provider store={store}>
+          <ScrollToTop />
+          <NavBar />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/menu" element={<Menu />} />
+            <Route
+              path="/book-table"
+              element={
+                <Elements stripe={stripePromise}>
+                  <BookTable />
+                </Elements>
+              }
+            />
+            <Route path="/reservation" element={<ReservationForm />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/Cart" element={<Cart />} />
+          </Routes>
+          <NewFooter />
+        </Provider>
+      </Router>
     </>
-    // <Router>
-    //   <Provider store={store}>
-    //     <ScrollToTop />
-    //     <NavBar />
-    //     <Routes>
-    //       <Route path="/" element={<Home />} />
-    //       <Route path="/menu" element={<Menu />} />
-    //       <Route
-    //         path="/book-table"
-    //         element={
-    //           <Elements stripe={stripePromise}>
-    //             <BookTable />
-    //           </Elements>
-    //         }
-    //       />
-    //       <Route path="/reservation" element={<ReservationForm />} />
-    //       <Route path="/contact" element={<Contact />} />
-    //       <Route path="/Cart" element={<Cart />} />
-    //     </Routes>
-    //     <NewFooter />
-    //   </Provider>
-    // </Router>
   );
 }
 

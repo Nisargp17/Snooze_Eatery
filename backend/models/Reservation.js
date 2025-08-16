@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const reservationSchema = new mongoose.Schema({
+import { Schema, model } from "mongoose";
+const reservationSchema = new Schema({
   type: {
     type: String,
     enum: ["table", "event"],
@@ -18,4 +18,4 @@ const reservationSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-module.exports = mongoose.model("Reservation", reservationSchema);
+export default model("Reservation", reservationSchema);

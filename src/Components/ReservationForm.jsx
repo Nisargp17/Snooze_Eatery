@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
+import PaymentForm from "./PaymentForm";
 
 const InputField = ({
   id,
@@ -98,6 +99,11 @@ const TextAreaField = ({
 
 const ReservationForm = () => {
   const containerRef = useRef(null);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [clientSecret, setClientSecret] = useState(null);
+
+  const [reservationId, setReservationId] = useState(null);
+
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
   const [formData, setFormData] = useState({
     name: "",
@@ -165,6 +171,63 @@ const ReservationForm = () => {
     }
   };
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   if (!validate()) return;
+
+  //   setLoading(true);
+  //   setSubmitStatus(null);
+
+  //   const reservation = {
+  //     type: "event",
+  //     name: formData.name.trim(),
+  //     email: formData.email.trim(),
+  //     eventName: formData.event.trim(),
+  //     persons: Number(formData.persons),
+  //     date: formData.date,
+  //     time: formData.time,
+  //     duration: formData.duration.trim(),
+  //     requests: formData.message.trim(),
+  //   };
+
+  //   try {
+  //     const res = await fetch(`${API_BASE}/api/reservations`, {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify(reservation),
+  //     });
+
+  //     if (!res.ok) throw new Error("Network response was not ok");
+
+  //     const data = await res.json();
+  //     setReservationId(result.reservationId);
+  //     setIsPaymentModalOpen(true);
+  //     setSubmitStatus({
+  //       type: "success",
+  //       message: data.message || "Reservation successful!",
+  //     });
+
+  //     setFormData({
+  //       name: "",
+  //       email: "",
+  //       event: "",
+  //       persons: "",
+  //       date: "",
+  //       time: "",
+  //       duration: "",
+  //       message: "",
+  //     });
+  //     setErrors({});
+  //   } catch (error) {
+  //     console.error("Error submitting event reservation:", error);
+  //     setSubmitStatus({
+  //       type: "error",
+  //       message: "Failed to submit reservation. Please try again.",
+  //     });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
@@ -185,6 +248,7 @@ const ReservationForm = () => {
     };
 
     try {
+      // 1️⃣ Send reservation
       const res = await fetch(`${API_BASE}/api/reservations`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -192,13 +256,36 @@ const ReservationForm = () => {
       });
 
       if (!res.ok) throw new Error("Network response was not ok");
-
       const data = await res.json();
+
+      setReservationId(data.reservationId); // Correct variable name!
+
+      // 2️⃣ Create Stripe PaymentIntent and get client secret
+      const payRes = await fetch(
+        `${API_BASE}/api/payment/create-payment-intent`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            reservationId: data.reservationId,
+            amount: 1000, // customize as needed
+          }),
+        }
+      );
+      const payData = await payRes.json();
+      setClientSecret(payData.clientSecret);
+
+      // 3️⃣ Open payment modal
+      setIsPaymentModalOpen(true);
+
       setSubmitStatus({
         type: "success",
-        message: data.message || "Reservation successful!",
+        message:
+          data.message ||
+          "Reservation successful! Please complete payment to confirm.",
       });
 
+      // (Optional) Clear form
       setFormData({
         name: "",
         email: "",
@@ -211,13 +298,31 @@ const ReservationForm = () => {
       });
       setErrors({});
     } catch (error) {
-      console.error("Error submitting event reservation:", error);
-      setSubmitStatus({
-        type: "error",
-        message: "Failed to submit reservation. Please try again.",
-      });
+      setSubmitStatus({ type: "error", message: error.message });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePaymentSuccess = async ({ paymentDetails, reservationId }) => {
+    try {
+      const response = await fetch(`${API_BASE}/api/payment/confirm-payment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reservationId }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        showPopup("🎉 Payment successful! Your booking is confirmed.");
+        setIsPaymentModalOpen(false);
+      } else {
+        showPopup("Payment failed: " + result.message);
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+      showPopup("Payment failed. Please try again.");
     }
   };
 
@@ -360,6 +465,33 @@ const ReservationForm = () => {
               </button>
             </div>
           </form>
+          {isPaymentModalOpen && clientSecret && (
+            <div
+              className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 px-4"
+              aria-modal="true"
+            >
+              <div className="bg-white rounded-lg p-8 max-w-2xl w-full relative shadow-lg">
+                <button
+                  aria-label="Close modal"
+                  onClick={() => setIsPaymentModalOpen(false)}
+                  className="absolute top-3 right-4 text-gray-500 hover:text-gray-800 text-3xl leading-none"
+                >
+                  &times;
+                </button>
+
+                <h3 className="text-2xl font-semibold mb-6 text-center">
+                  Enter Payment Details
+                </h3>
+
+                {/* Pass clientSecret + reservationId to your PaymentForm */}
+                <PaymentForm
+                  clientSecret={clientSecret}
+                  reservationId={reservationId}
+                  onPaymentSuccess={handlePaymentSuccess}
+                />
+              </div>
+            </div>
+          )}
 
           {submitStatus && (
             <div

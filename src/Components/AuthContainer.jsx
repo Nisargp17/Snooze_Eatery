@@ -1,28 +1,32 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { gsap } from "gsap";
 import Login from "./Login";
 import Signup from "./Signup";
-import { useEffect } from "react";
 
 export default function AuthContainer() {
   const [isLogin, setIsLogin] = useState(true);
   const sliderRef = useRef();
 
   useEffect(() => {
-    gsap.fromTo(
-      sliderRef,
-      {
-        width: "50%",
-      },
-      {
-        width: "100%",
-        x: "100%",
-        duration: 1000,
-        ease: "power1",
-        yoyo: true,
-        repeat: true,
-      }
-    );
+    if (!sliderRef.current) return;
+
+    // Kill existing animations if toggled fast
+    gsap.killTweensOf(sliderRef.current);
+
+    // Create a timeline
+    const tl = gsap.timeline({
+      defaults: { ease: "power2.inOut", duration: 1 },
+    });
+
+    if (isLogin) {
+      // Back to Login Mode
+      tl.to(sliderRef.current, { x: "0%", width: "100%" }) // first expand fully
+        .to(sliderRef.current, { width: "50%" }); // then slide back + compress
+    } else {
+      // To Signup Mode
+      tl.to(sliderRef.current, { width: "100%" }) // first expand fully
+        .to(sliderRef.current, { x: "100%", width: "50%" }); // then slide right + compress
+    }
   }, [isLogin]);
 
   return (
@@ -36,11 +40,13 @@ export default function AuthContainer() {
             <Signup />
           </div>
         </div>
+
         <div
           ref={sliderRef}
-          className={`absolute top-0 h-full w-1/2 bg-gray-700 transition-all duration-1000 ease-in-out rounded-[20px] shadow-xl flex flex-col justify-center items-center`}
+          className="absolute top-0 h-full bg-gray-700 rounded-[20px] shadow-xl flex flex-col justify-center items-center"
           style={{
-            transform: isLogin ? "translateX(0%)" : "translateX(100%)",
+            width: "50%",
+            transform: "translateX(0%)",
           }}
         >
           <h2 className="text-3xl font-bold mb-6 text-[#202224]">
@@ -49,7 +55,7 @@ export default function AuthContainer() {
           <p className="mb-6 text-gray-500 text-center px-8">
             {isLogin
               ? "Already have an account? Login to stay connected."
-              : "Dont Have an account? Lets create One"}
+              : "Don't have an account? Let's create one!"}
           </p>
           <button
             onClick={() => setIsLogin(!isLogin)}

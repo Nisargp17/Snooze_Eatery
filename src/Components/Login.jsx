@@ -26,7 +26,7 @@ function Login() {
             </div>
 
             <div className="flex flex-col justify-start items-start mt-[55px] w-[516px] h-[145px]">
-              <div className="flex justify-center items-center gap-[280px]">
+              <div className="flex justify-center items-center gap-[272px]">
                 <label className="text-[18px] text-[#202224] font-[600] opacity-[80%] -tracking-[0.06px]">
                   Password:
                 </label>

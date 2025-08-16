@@ -1,12 +1,12 @@
-const express = require("express");
-const router = express.Router();
-const Reservation = require("../models/Reservation");
+import { Router } from "express";
+const router = Router();
+import { findById } from "../models/Reservation";
 
 router.post("/confirm-payment", async (req, res) => {
   const { reservationId } = req.body;
 
   try {
-    const reservation = await Reservation.findById(reservationId);
+    const reservation = await findById(reservationId);
 
     if (!reservation) {
       return res.status(404).json({ message: "Reservation not found." });
@@ -24,4 +24,4 @@ router.post("/confirm-payment", async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
