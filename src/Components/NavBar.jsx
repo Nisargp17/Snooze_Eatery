@@ -89,6 +89,12 @@ function NavBar() {
         >
           Contact
         </NavLink>
+        <NavLink
+          to="/Cart"
+          className="header_item flex items-center justify-center"
+        >
+          Cart
+        </NavLink>
       </nav>
     </header>
   );
