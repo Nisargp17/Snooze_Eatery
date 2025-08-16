@@ -56,7 +56,15 @@ function App() {
                 </Elements>
               }
             />
-            <Route path="/reservation" element={<ReservationForm />} />
+            <Route
+              path="/reservation"
+              element={
+                <Elements stripe={stripePromise}>
+                  <ReservationForm />
+                </Elements>
+              }
+            />
+
             <Route path="/contact" element={<Contact />} />
             <Route path="/Cart" element={<Cart />} />
           </Routes>
