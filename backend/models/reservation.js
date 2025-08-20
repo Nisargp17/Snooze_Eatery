@@ -15,7 +15,10 @@ const reservationSchema = new Schema({
   persons: Number,
   requests: String,
   status: { type: String, enum: ["waiting", "confirmed"], default: "waiting" },
+  startTime: { type: Date },
+  endTime: { type: Date },
   createdAt: { type: Date, default: Date.now },
 });
+reservationSchema.index({ date: 1, startTime: 1, endTime: 1 });
 
 export default model("reservation", reservationSchema);

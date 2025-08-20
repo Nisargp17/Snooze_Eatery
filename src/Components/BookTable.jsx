@@ -28,6 +28,7 @@ const BookTable = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
+  const [popupType, setPopupType] = useState("success");
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [reservationId, setReservationId] = useState(null);
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
@@ -169,26 +170,42 @@ const BookTable = () => {
 
   const showPopup = useCallback((message) => {
     setPopupMessage(message);
+    setPopupType("success");
     setIsPopupVisible(true);
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const showError = useCallback((message) => {
+    setPopupMessage(message);
+    setPopupType("error");
+    setIsPopupVisible(true);
+  }, []);
 
-    if (!formData.name.trim()) return showPopup("Please enter your name.");
-    if (!validateEmail(formData.email))
-      return showPopup("Please enter a valid email.");
-    if (!validatePhone(formData.phone))
-      return showPopup("Please enter a valid phone number.");
-    if (!formData.date) return showPopup("Please select a date.");
-    if (!formData.time) return showPopup("Please select a time.");
+  const to24Hour = useCallback((timeLabel) => {
+    if (!timeLabel) return timeLabel;
+    const parts = timeLabel.split(" ");
+    if (parts.length !== 2) return timeLabel;
+    const [time, modifier] = parts;
+    let [hour, minute] = time.split(":").map(Number);
+    if (modifier === "PM" && hour !== 12) hour += 12;
+    if (modifier === "AM" && hour === 12) hour = 0;
+    const hh = String(hour).padStart(2, "0");
+    const mm = String(minute).padStart(2, "0");
+    return `${hh}:${mm}`;
+  }, []);
 
-    setIsLoading(true);
+  const checkAvailability = async () => {
+    if (!formData.date || !formData.time) {
+      showError("Please fill in Date and Time to proceed.");
+      return false;
+    }
 
+    const time24 = to24Hour(formData.time);
     const payload = {
       ...formData,
+      time: time24,
       type: "table",
       status: "waiting",
+      duration: "2"
     };
 
     try {
@@ -198,28 +215,65 @@ const BookTable = () => {
         body: JSON.stringify(payload),
       });
 
-      const result = await response.json();
-
-      if (response.ok) {
-        setReservationId(result.reservationId);
-        showPopup("🎉 Booking confirmed! Please proceed with payment.");
-        setIsPaymentModalOpen(true);
-        setFormData({
-          name: "",
-          email: "",
-          phone: "",
-          date: "",
-          time: "11:00 AM",
-          guests: 1,
-          requests: "",
-        });
-        setIsModalOpen(false);
-      } else {
-        showPopup("Booking failed: " + result.message);
+      const result = await response.json().catch(() => ({}));
+      
+      if (!response.ok) {
+        showError(result.message || 'Time slot not available.');
+        return false;
       }
+
+      return true;
+    } catch (error) {
+      console.error("Availability check error:", error);
+      showError("Failed to check availability. Please try again.");
+      return false;
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!formData.name.trim()) return showError("Please enter your name.");
+    if (!validateEmail(formData.email))
+      return showError("Please enter a valid email.");
+    if (!validatePhone(formData.phone))
+      return showError("Please enter a valid phone number.");
+    if (!formData.date) return showError("Please select a date.");
+    if (!formData.time) return showError("Please select a time.");
+
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(`${API_BASE}/api/reservations`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json().catch(() => ({}));
+      
+      if (!response.ok) {
+        showError(result.message || 'Booking failed.');
+        return;
+      }
+
+      // If we get here, response was successful
+      setReservationId(result.reservationId);
+      showPopup("🎉 Booking confirmed! Please proceed with payment.");
+      setIsPaymentModalOpen(true);
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        date: "",
+        time: "11:00 AM",
+        guests: 1,
+        requests: "",
+      });
+      setIsModalOpen(false);
     } catch (error) {
       console.error("Frontend error:", error);
-      showPopup("Something went wrong. Please try again.");
+      showError("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -331,6 +385,7 @@ const BookTable = () => {
                               time: timeOption,
                             }));
                             setIsDropdownOpen(false);
+                            
                           }
                         }}
                         className={`p-3 cursor-pointer hover:bg-gray-200 ${
@@ -364,12 +419,16 @@ const BookTable = () => {
 
             <button
               type="button"
-              onClick={() => {
+              onClick={async () => {
                 if (isBookDisabled) {
-                  showPopup("Please fill in Date and Time to proceed.");
+                  showError("Please fill in Date and Time to proceed.");
                   return;
                 }
-                setIsModalOpen(true);
+                
+                const isAvailable = await checkAvailability();
+                if (isAvailable) {
+                  setIsModalOpen(true);
+                }
               }}
               disabled={isBookDisabled}
               className={`cursor-pointer bg-black text-white px-6 py-3 rounded-md w-full max-w-xs transition ${
@@ -533,7 +592,9 @@ const BookTable = () => {
         {isPopupVisible && (
           <div
             ref={popupRef}
-            className="fixed bottom-5 right-5 bg-green-600 text-white px-6 py-3 rounded-md shadow-lg z-50 select-none"
+            className={`fixed top-20 right-5 ${
+              popupType === 'error' ? 'bg-red-600' : 'bg-green-600'
+            } text-white px-6 py-3 rounded-md shadow-lg z-50 select-none`}
             role="alert"
             aria-live="assertive"
           >

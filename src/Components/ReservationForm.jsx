@@ -255,7 +255,11 @@ const ReservationForm = () => {
         body: JSON.stringify(reservation),
       });
 
-      if (!res.ok) throw new Error("Network response was not ok");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setSubmitStatus({ type: "error", message: err.message || "Failed to submit reservation." });
+        return;
+      }
       const data = await res.json();
 
       setReservationId(data.reservationId); // Correct variable name!

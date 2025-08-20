@@ -23,6 +23,10 @@ router.post("/", async (req, res) => {
       date: data.date,
       $or: [
         {
+          startTime: { $lt: eventEnd },
+          endTime: { $gt: eventStart },
+        },
+        {
           startTime: { $lt: maxAllowedEnd },
           endTime: { $gt: minAllowedStart },
         },
@@ -30,8 +34,30 @@ router.post("/", async (req, res) => {
     });
 
     if (checkConflict) {
+      const bufferMs = 4 * 60 * 60 * 1000;
+      const nextAvailableAt = new Date(
+        checkConflict.endTime.getTime() + bufferMs
+      );
+
+      const humanDate = nextAvailableAt.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+      });
+      const humanTime = nextAvailableAt.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
       return res.status(400).json({
-        message: "This time slot is not available. Please choose another time.",
+        message: `This time slot is not available. The restaurant is available after ${humanTime} on ${humanDate}.`,
+        conflict: {
+          existingStart: checkConflict.startTime,
+          existingEnd: checkConflict.endTime,
+          requestedStart: eventStart,
+          requestedEnd: eventEnd,
+        },
+        nextAvailableAt: nextAvailableAt.toISOString(),
       });
     }
 
