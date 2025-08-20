@@ -372,7 +372,7 @@ const BookTable = () => {
                 setIsModalOpen(true);
               }}
               disabled={isBookDisabled}
-              className={`bg-black text-white px-6 py-3 rounded-md w-full max-w-xs transition ${
+              className={`cursor-pointer bg-black text-white px-6 py-3 rounded-md w-full max-w-xs transition ${
                 isBookDisabled
                   ? "opacity-50 cursor-not-allowed"
                   : "hover:bg-gray-800"
@@ -470,7 +470,7 @@ const BookTable = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className={`bg-black text-white px-6 py-3 rounded-md hover:bg-gray-800 transition w-full flex justify-center items-center mt-6 ${
+                  className={`cursor-pointer bg-black text-white px-6 py-3 rounded-md hover:bg-gray-800 transition w-full flex justify-center items-center mt-6 ${
                     isLoading ? "cursor-not-allowed opacity-70" : ""
                   }`}
                 >

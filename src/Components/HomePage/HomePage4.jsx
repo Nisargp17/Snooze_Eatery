@@ -36,7 +36,7 @@ function HomePage4() {
                 ₹ {item.price}
               </div>
               <button
-                className="bg-[#444444] text-white px-[10px] py-[8px] rounded-[20px]"
+                className="cursor-pointer bg-[#444444] text-white px-[10px] py-[8px] rounded-[20px]"
                 onClick={() => {
                   dispatch(addToCart(item));
                   setIsPopup(true);

@@ -455,7 +455,7 @@ const ReservationForm = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className={`w-full py-3 rounded-md bg-black text-white transition focus:outline-none focus:ring-2 focus:ring-black ${
+                className={`cursor-pointer w-full py-3 rounded-md bg-black text-white transition focus:outline-none focus:ring-2 focus:ring-black ${
                   loading
                     ? "opacity-50 cursor-not-allowed"
                     : "hover:bg-neutral-900"

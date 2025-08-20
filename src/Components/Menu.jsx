@@ -96,7 +96,7 @@ const Section = ({ title, image, items, reverse, onAddToCart }) => {
               <p className="text-gray-800 font-bold mt-2">₹ {item.price}</p>
               <div>
                 <button
-                  className="bg-[#444444] text-white px-[10px] py-[8px] rounded-[20px]"
+                  className="bg-[#444444] text-white px-[10px] py-[8px] rounded-[20px] cursor-pointer"
                   onClick={() => onAddToCart(item)}
                 >
                   Add To Cart

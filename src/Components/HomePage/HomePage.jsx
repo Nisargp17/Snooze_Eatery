@@ -116,7 +116,7 @@ function HomePage() {
               </div>
               <div id="hero_text6" className="opacity-0 btn-view">
                 <NavLink to="/menu">
-                  <button className="text-[1.1rem] text-white">
+                  <button className="text-[1.1rem] text-white cursor-pointer">
                     View Menu
                   </button>
                 </NavLink>
