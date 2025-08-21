@@ -1,7 +1,7 @@
 import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
 import React, { useState } from "react";
 
-const PaymentForm = ({ amount, reservationId, onPaymentSuccess }) => {
+const PaymentForm = ({ amount = 0, reservationId, onPaymentSuccess }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -21,21 +21,23 @@ const PaymentForm = ({ amount, reservationId, onPaymentSuccess }) => {
     setIsProcessing(true);
 
     try {
-      const res = await fetch(`${API_BASE}/create-payment-intent`, {
+      // Always create a fresh PaymentIntent to avoid state conflicts
+      const res = await fetch(`${API_BASE}/api/payment/create-payment-intent`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount }),
+        body: JSON.stringify({ reservationId, amount }),
       });
 
       if (!res.ok) {
-        const err = await res.json();
+        const err = await res.json().catch(() => ({}));
         throw new Error(err.message || "Failed to create payment intent");
       }
 
-      const { clientSecret } = await res.json();
+      const data = await res.json();
+      const secret = data.clientSecret;
 
       const { error, paymentIntent } = await stripe.confirmCardPayment(
-        clientSecret,
+        secret,
         {
           payment_method: {
             card: elements.getElement(CardElement),
@@ -44,7 +46,8 @@ const PaymentForm = ({ amount, reservationId, onPaymentSuccess }) => {
       );
 
       if (error) {
-        setErrorMessage(error.message);
+        console.error('Stripe payment error:', error);
+        setErrorMessage(`Payment failed: ${error.message}`);
       } else if (paymentIntent.status === "succeeded") {
         onPaymentSuccess({ paymentDetails: paymentIntent, reservationId });
       } else {
@@ -83,13 +86,13 @@ const PaymentForm = ({ amount, reservationId, onPaymentSuccess }) => {
       <button
         type="submit"
         disabled={isProcessing || !stripe}
-        className={`w-full px-6 py-3 rounded-md text-white ${
+        className={`cursor-pointer w-full px-6 py-3 rounded-md text-white ${
           isProcessing || !stripe
             ? "bg-gray-400 cursor-not-allowed"
             : "bg-black hover:bg-gray-800"
         }`}
       >
-        {isProcessing ? "Processing..." : `Pay $${(amount / 100).toFixed(2)}`}
+        {isProcessing ? "Processing..." : `Pay $${(Number(amount || 0) / 100).toFixed(2)}`}
       </button>
     </form>
   );

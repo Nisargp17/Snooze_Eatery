@@ -40,7 +40,7 @@ function HomePage5() {
       {iconData.map((item) => (
         <div
           key={item.id}
-          className="flex flex-col justify-center items-center gap-3 w-full sm:w-[45%] md:w-[20vw] text-center hover:scale-105 hover:cursor-pointer transition-transform duration-300"
+          className="flex flex-col justify-center items-center gap-3 w-full sm:w-[45%] md:w-[20vw] text-center hover:scale-105  transition-transform duration-300"
         >
           <img
             src={item.image}
